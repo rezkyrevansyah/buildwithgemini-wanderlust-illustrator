@@ -148,17 +148,17 @@ def _extract_parts(parts: list) -> list[dict]:
         root = getattr(p, "root", p)
         if isinstance(root, TextPart) and getattr(root, "text", None):
             txt = root.text
-            # If the model or runtime wrapped A2UI into <a2a_datapart_json> inside a text part
-            if "<a2a_datapart_json>" in txt:
-                matches = re.findall(r"<a2a_datapart_json>(.*?)</a2a_datapart_json>", txt, re.DOTALL)
-                for m in matches:
+            # If the model or runtime wrapped A2UI into <a2a_datapart_json> or <a2ui-json> inside a text part
+            tag_matches = re.findall(r"<(?:a2a_datapart_json|a2ui-json)>(.*?)</(?:a2a_datapart_json|a2ui-json)>", txt, re.DOTALL)
+            if tag_matches:
+                for m in tag_matches:
                     try:
                         parsed = json.loads(m.strip())
-                        data_body = parsed.get("data") if isinstance(parsed, dict) else parsed
+                        data_body = parsed.get("data") if isinstance(parsed, dict) and "data" in parsed else parsed
                         out.append({"kind": "a2ui", "data": data_body})
                     except Exception:
                         pass
-                clean_txt = re.sub(r"<a2a_datapart_json>.*?</a2a_datapart_json>", "", txt, flags=re.DOTALL).strip()
+                clean_txt = re.sub(r"<(?:a2a_datapart_json|a2ui-json)>.*?</(?:a2a_datapart_json|a2ui-json)>", "", txt, flags=re.DOTALL).strip()
                 if clean_txt:
                     out.append({"kind": "text", "text": clean_txt})
             else:

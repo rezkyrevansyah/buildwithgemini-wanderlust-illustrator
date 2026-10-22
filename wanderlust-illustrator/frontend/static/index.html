@@ -2404,10 +2404,11 @@ function renderSurface(messages, container) {
   const comps = {};
   const roots = [];
   for (const m of messages) {
+    if (!m) continue;
     if (m.beginRendering && typeof m.beginRendering.root === "string") roots.push(m.beginRendering.root);
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) {
-      for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
+    const compsList = (m.surfaceUpdate && m.surfaceUpdate.components) || m.components;
+    if (Array.isArray(compsList)) {
+      for (const c of compsList) if (c && c.id && c.component) comps[c.id] = c.component;
     }
   }
   let rootIds = roots.filter(r => comps[r]);
@@ -2433,9 +2434,10 @@ function renderSurface(messages, container) {
 function flattenText(messages) {
   const out = [];
   for (const m of messages) {
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) {
-      for (const c of su.components) {
+    if (!m) continue;
+    const compsList = (m.surfaceUpdate && m.surfaceUpdate.components) || m.components;
+    if (Array.isArray(compsList)) {
+      for (const c of compsList) {
         if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
       }
     }
@@ -2445,8 +2447,30 @@ function flattenText(messages) {
 
 function renderReply(b, parts) {
   b.textContent = "";
-  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
-  const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
+
+  // Normalize incoming parts: parse any text parts containing <a2ui-json> or <a2a_datapart_json>
+  const normalizedParts = [];
+  for (const p of parts) {
+    if (!p) continue;
+    if ((p.kind === "text" || !p.kind) && p.text) {
+      const txt = p.text.trim();
+      const match = txt.match(/<(?:a2ui-json|a2a_datapart_json)>([\s\S]*?)<\/(?:a2ui-json|a2a_datapart_json)>/i);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[1].trim());
+          const a2uiData = parsed.data || parsed;
+          normalizedParts.push({ kind: "a2ui", data: a2uiData });
+          const remaining = txt.replace(/<(?:a2ui-json|a2a_datapart_json)>[\s\S]*?<\/(?:a2ui-json|a2a_datapart_json)>/gi, "").trim();
+          if (remaining) normalizedParts.push({ kind: "text", text: remaining });
+          continue;
+        } catch (e) {}
+      }
+    }
+    normalizedParts.push(p);
+  }
+
+  const texts = normalizedParts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
+  const a2ui = normalizedParts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
   const textStr = texts.join("\n").trim();
   if (textStr) b.appendChild(el("div", null, textStr));
