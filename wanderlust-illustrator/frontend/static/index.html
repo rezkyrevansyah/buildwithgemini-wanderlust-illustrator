@@ -307,52 +307,21 @@
     justify-content: center;
     gap: 0.5rem;
     flex-wrap: wrap;
-    margin: 0.85rem 0 0.5rem;
+    margin: 1rem 0 0.25rem;
   }
 
   .welcome-pill {
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     font-weight: 600;
-    padding: 0.22rem 0.65rem;
-    border-radius: 12px;
+    padding: 0.28rem 0.75rem;
+    border-radius: 9999px;
     background: #f0fdfa;
     color: var(--brand-navy);
     border: 1px solid #ccfbf1;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .welcome-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.95rem;
-  }
-
-  .starter-chip {
-    background: #ffffff;
-    border: 1px solid #ccfbf1;
-    color: var(--brand-navy);
-    padding: 0.42rem 0.95rem;
-    border-radius: 9999px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: var(--shadow-xs);
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    user-select: none;
-    transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
-  }
-
-  .starter-chip:hover {
-    background: #f0fdfa;
-    border-color: var(--brand-teal);
-    color: var(--brand-teal-dark);
-    box-shadow: 0 2px 6px rgba(0, 168, 150, 0.16);
+    box-shadow: 0 1px 2px rgba(8, 51, 68, 0.04);
   }
 
   .drawer-logo-icon, .modal-logo-icon {
@@ -360,20 +329,6 @@
     height: 28px;
     object-fit: contain;
     filter: drop-shadow(0 1px 3px rgba(0, 168, 150, 0.2));
-  }
-
-  .starter-chip:hover {
-    background: #f0fdfa;
-    border-color: #0f766e;
-    color: #115e59;
-    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.14);
-  }
-
-  .starter-chip:active, .starter-chip.active-press {
-    transform: scale(0.96);
-    background: #0f766e;
-    color: #ffffff;
-    border-color: #0f766e;
   }
 
   /* Message Bubbles */
@@ -1455,20 +1410,6 @@
       <span class="welcome-pill">🎨 AI Postcard Generator</span>
       <span class="welcome-pill">🌤️ Real-Time Weather</span>
       <span class="welcome-pill">💾 Auto-Saved History</span>
-    </div>
-    <div class="welcome-suggestions" id="welcomeSuggestions">
-      <button type="button" class="starter-chip" data-prompt="Show me destinations in your catalog">
-        <span>🗺️</span> <span>Explore Catalog</span>
-      </button>
-      <button type="button" class="starter-chip" data-prompt="Recommend a 5-day romantic trip to Amalfi Coast">
-        <span>🍋</span> <span>Amalfi Coast Plan</span>
-      </button>
-      <button type="button" class="starter-chip" data-prompt="Generate a vintage travel postcard for Kyoto, Japan">
-        <span>🎨</span> <span>Generate Kyoto Postcard</span>
-      </button>
-      <button type="button" class="starter-chip" data-prompt="What places are good for adventure and nature?">
-        <span>🏔️</span> <span>Adventure Spots</span>
-      </button>
     </div>
   </div>
 </div>
