@@ -1821,7 +1821,6 @@ function startNewTrip() {
   log.innerHTML = "";
   if (welcomeCard) {
     log.appendChild(welcomeCard);
-    wireStarterChips();
   }
   renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
   input.value = "";
@@ -2224,21 +2223,6 @@ function updatePersonalizedSuggestions(userPrompt, replyParts) {
   SessionVault.updateSuggestions(currentSession.id, finalSuggestions, title);
 }
 
-function wireStarterChips() {
-  document.querySelectorAll(".starter-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      chip.classList.add("active-press");
-      userScrolledUp = false;
-      const promptText = chip.getAttribute("data-prompt");
-      if (promptText) {
-        input.value = promptText;
-        form.dispatchEvent(new Event("submit"));
-      }
-    });
-  });
-}
-wireStarterChips();
-
 /* -------------------------------------------------------------
  * 7. RESTORE SESSION ON RELOAD (Never Loses Chat Memory)
  * ------------------------------------------------------------- */
@@ -2247,7 +2231,6 @@ function restoreSessionUI(sess) {
   if (!sess.messages || sess.messages.length === 0) {
     if (welcomeCard) {
       log.appendChild(welcomeCard);
-      wireStarterChips();
     }
     renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
     return;
