@@ -96,20 +96,30 @@ schema_manager = A2uiSchemaManager(
 
 a2ui_system_instruction = schema_manager.generate_system_prompt(
     role_description=(
-        "You are Wanderlust Illustrator, an expert travel planner agent. "
-        "You help users assemble dream itineraries, explore destinations, and manage their travel dreams. "
-        "IMPORTANT MEMORY & WISHLIST GUIDELINES: "
-        "- Explicitly track and remember every destination, city, country, landmark, and trip idea the user mentions in their travel wishlist or bucket list. "
-        "- When the user mentions wanting to visit, liking, or adding a place to their wishlist, acknowledge it and ensure it is remembered across sessions. "
-        "- In new conversations, proactively recall and reference places from the user's saved wishlist to tailor itineraries, recommendations, and postcard illustrations. "
-        "- Also remember general preferences (budget tier, travel vibe, travel dates, companion details). "
-        "Use `list_destinations`, `get_destination`, and `add_or_update_destination` to consult and expand the catalog. "
+        "You are Wanderlust Illustrator, an expert travel planner agent with comprehensive global knowledge. "
+        "You help users assemble dream itineraries, explore destinations worldwide, and manage their travel dreams. "
+        "CRITICAL WORLDWIDE TRAVEL RULES: "
+        "- You have encyclopedic, expert-level knowledge of EVERY city, town, island, culture, and attraction across the entire globe (e.g. Yogyakarta, Bandung, Bali, Kyoto, Tokyo, Paris, Rome, Amalfi, New York, Cairo, Zurich, Reykjavik, etc.). "
+        "- NEVER tell the user 'I don't have information about [city] in my catalog yet' or refuse to plan an itinerary! "
+        "- NEVER ask the user to provide vibes, budget, or details to add a destination before you can answer. "
+        "- When asked to plan an itinerary, describe a place, suggest food, or recommend sights for ANY destination, IMMEDIATELY provide a rich, inspiring, day-by-day response or A2UI card using your knowledge and tools! "
+        "- Use `search_worldwide_destination` to look up live facts, coordinates, and summaries for any city globally. "
+        "- You can consult `list_destinations` or `get_destination`. If a destination is not yet in Firestore, seamlessly answer anyway using your general knowledge or `search_worldwide_destination`, and optionally use `add_or_update_destination` to save it to the catalog in the background. "
+        "- IMPORTANT MEMORY & WISHLIST GUIDELINES: "
+        "  * Explicitly track and remember every destination, city, country, landmark, and trip idea the user mentions in their travel wishlist or bucket list. "
+        "  * When the user mentions wanting to visit, liking, or adding a place to their wishlist, acknowledge it and ensure it is remembered across sessions. "
+        "  * In new conversations, proactively recall and reference places from the user's saved wishlist to tailor itineraries, recommendations, and postcard illustrations. "
+        "  * Also remember general preferences (budget tier, travel vibe, travel dates, companion details). "
         "Use `generate_destination_postcard` whenever the user asks to see, illustrate, or create a visual postcard of a destination. "
         "Use `generate_destination_video` whenever the user asks for a video, clip, teaser, cinematic shot, or animated view of a destination. "
         "Use `get_destination_live_weather` for real-time live climate and forecast data. "
         "You can run Python code in your sandbox for trip budgeting, currency conversions, day splits, or math calculations."
     ),
-    workflow_description="Analyze the request, call relevant tools to fetch destinations, weather, or postcards, and return structured UI when appropriate.",
+    workflow_description=(
+        "Analyze the user's travel request. If they ask about a city (e.g. Yogyakarta, Kyoto, Amalfi, Bandung), "
+        "immediately provide a vivid itinerary, recommendations, weather, or postcard. Return a clean, structured A2UI card "
+        "or helpful text. Never refuse an itinerary request for any real-world location."
+    ),
     ui_description=(
         "Keep every surface tiny and flat: ONE Card > ONE Column > a few Text rows. "
         "Never nest a Card inside a Card. "
@@ -436,6 +446,76 @@ def get_destination_live_weather(destination_name: str) -> Dict[str, Any]:
     }
 
 
+def search_worldwide_destination(destination_name: str) -> Dict[str, Any]:
+    """Search comprehensive travel information for ANY city, region, or attraction worldwide.
+
+    Args:
+        destination_name: Name of the city or place (e.g. 'Yogyakarta', 'Bandung', 'Zurich', 'Cairo', 'Sydney', 'Kyoto').
+
+    Returns:
+        A dictionary with coordinates, country, timezone, population, summary description, and verified details.
+    """
+    import json
+    import urllib.parse
+    import urllib.request
+
+    encoded = urllib.parse.quote(destination_name.strip())
+    geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded}&count=1&language=en&format=json"
+    req = urllib.request.Request(
+        geo_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"}
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            geo_data = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        return {
+            "destination": destination_name,
+            "note": f"Live geocoding unavailable ({e}), use your encyclopedic knowledge to answer in full.",
+        }
+
+    results = geo_data.get("results") or []
+    if not results:
+        return {
+            "destination": destination_name,
+            "note": "Use your encyclopedic travel knowledge to answer the user with full details.",
+        }
+
+    top = results[0]
+    name = top.get("name", destination_name)
+    country = top.get("country", "")
+    admin1 = top.get("admin1", "")
+    lat = top.get("latitude")
+    lon = top.get("longitude")
+    tz = top.get("timezone", "UTC")
+    pop = top.get("population")
+
+    summary = ""
+    try:
+        wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(name)}"
+        w_req = urllib.request.Request(
+            wiki_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"}
+        )
+        with urllib.request.urlopen(w_req, timeout=5) as w_resp:
+            w_data = json.loads(w_resp.read().decode("utf-8"))
+            summary = w_data.get("extract", "")
+    except Exception:
+        pass
+
+    return {
+        "destination": f"{name}, {country}" if country else name,
+        "city": name,
+        "country": country,
+        "region": admin1,
+        "latitude": lat,
+        "longitude": lon,
+        "timezone": tz,
+        "population": pop,
+        "summary": summary or f"A celebrated travel destination located in {country}.",
+        "status": "found",
+    }
+
+
 root_agent = Agent(
     name="root_agent",
     model=Gemini(
@@ -449,6 +529,7 @@ root_agent = Agent(
         list_destinations,
         get_destination,
         add_or_update_destination,
+        search_worldwide_destination,
         generate_destination_postcard,
         generate_destination_video,
         get_destination_live_weather,
