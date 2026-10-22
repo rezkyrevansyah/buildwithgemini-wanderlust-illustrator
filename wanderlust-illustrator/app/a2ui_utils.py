@@ -25,9 +25,9 @@ Robustness notes (why this file is more than a one-liner):
 import json
 import re
 
-from google.genai import types
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.llm_response import LlmResponse
+from google.genai import types
 
 # A2UI message kinds this renderer understands (v0.8).
 _A2UI_KEYS = ("beginRendering", "surfaceUpdate", "dataModelUpdate", "deleteSurface")
@@ -74,7 +74,7 @@ def _iter_json_values(text: str):
     """Yield top-level JSON values from a string of concatenated objects/arrays.
 
     Tolerates junk between values (tags, whitespace, commas). Stops at the first
-    unparseable value, so a valid prefix is still returned (partial recovery).
+    unparsable value, so a valid prefix is still returned (partial recovery).
     """
     decoder = json.JSONDecoder()
     idx = 0

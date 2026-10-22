@@ -27,6 +27,13 @@ Run:
 import os
 import uuid
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 import google.auth
 import google.auth.transport.requests
 import httpx
@@ -44,8 +51,12 @@ from a2a.types import (
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
-RESOURCE = os.environ["AGENT_ENGINE_RESOURCE_NAME"]
+RESOURCE = os.environ.get(
+    "AGENT_ENGINE_RESOURCE_NAME",
+    "projects/494495082021/locations/us-east1/reasoningEngines/2823170926663696384",
+)
 # The agent's app directory (matches agent_directory in agents-cli-manifest.yaml).
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
 # Location is embedded in the resource name: projects/<p>/locations/<loc>/reasoningEngines/<id>.
@@ -62,21 +73,30 @@ A2A_CARD_URL = f"{A2A_BASE}/.well-known/agent-card.json"
 # The agent tags its A2UI data parts with this mime type.
 _A2UI_MIME = "application/json+a2ui"
 
-# One set of ADC credentials, refreshed per request (access tokens expire ~1h).
-_creds, _ = google.auth.default(
-    scopes=["https://www.googleapis.com/auth/cloud-platform"]
-)
+# ADC credentials, initialized lazily and refreshed per request (access tokens expire ~1h).
+_creds = None
+
+
+def _get_creds():
+    global _creds
+    if _creds is None:
+        _creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+    return _creds
 
 
 def _auth_headers() -> dict[str, str]:
-    _creds.refresh(google.auth.transport.requests.Request())
+    creds = _get_creds()
+    creds.refresh(google.auth.transport.requests.Request())
     return {
-        "Authorization": f"Bearer {_creds.token}",
+        "Authorization": f"Bearer {creds.token}",
         "Content-Type": "application/json",
     }
 
 
 app = FastAPI()
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
 @app.exception_handler(Exception)
@@ -129,7 +149,11 @@ def _extract_parts(parts: list) -> list[dict]:
             raw_data = root.data
             meta = getattr(root, "metadata", None) or {}
             # Handle nested {"kind": "data", "metadata": {"mimeType": ...}, "data": ...}
-            if isinstance(raw_data, dict) and "data" in raw_data and "metadata" in raw_data:
+            if (
+                isinstance(raw_data, dict)
+                and "data" in raw_data
+                and "metadata" in raw_data
+            ):
                 meta = raw_data.get("metadata") or {}
                 raw_data = raw_data.get("data")
 

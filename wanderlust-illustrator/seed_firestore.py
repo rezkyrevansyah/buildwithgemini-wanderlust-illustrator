@@ -1,8 +1,14 @@
 """Seed script for populating the destinations collection in Firestore."""
+
+import os
+
+from dotenv import load_dotenv
 from google.cloud import firestore
 
-PROJECT_ID = "qwiklabs-gcp-04-42d301455a69"
-COLLECTION_NAME = "destinations"
+load_dotenv()
+
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-04-42d301455a69")
+COLLECTION_NAME = os.getenv("FIRESTORE_COLLECTION", "destinations")
 
 DESTINATIONS = [
     {
@@ -45,11 +51,16 @@ DESTINATIONS = [
         "vibes": ["adventure", "dramatic", "nature"],
         "budget_level": "luxury",
         "best_season": "Winter (Aurora) / Summer (Midnight Sun)",
-        "highlights": ["Blue Lagoon", "Skógafoss Waterfall", "Black Sand Beach Reynisfjara"],
+        "highlights": [
+            "Blue Lagoon",
+            "Skógafoss Waterfall",
+            "Black Sand Beach Reynisfjara",
+        ],
         "description": "Land of fire and ice featuring geysers, hot springs, volcanic landscapes, and Northern Lights.",
         "recommended_days": 5,
     },
 ]
+
 
 def seed_database():
     db = firestore.Client(project=PROJECT_ID)
@@ -59,7 +70,10 @@ def seed_database():
         data = {k: v for k, v in item.items() if k != "id"}
         db.collection(COLLECTION_NAME).document(doc_id).set(data)
         print(f"Seeded destination: {item['name']} ({doc_id})")
-    print(f"Successfully seeded {len(DESTINATIONS)} destinations into '{COLLECTION_NAME}'.")
+    print(
+        f"Successfully seeded {len(DESTINATIONS)} destinations into '{COLLECTION_NAME}'."
+    )
+
 
 if __name__ == "__main__":
     seed_database()

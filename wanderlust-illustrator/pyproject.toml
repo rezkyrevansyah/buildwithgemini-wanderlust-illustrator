@@ -67,7 +67,7 @@ known-first-party = ["app", "frontend"]
 python-version = "3.10"
 
 [tool.ty.src]
-exclude = [".venv/**"]
+exclude = [".venv/**", "frontend/**"]
 
 [tool.ty.rules]
 # Ignore common issues with third-party libraries and dynamic code patterns

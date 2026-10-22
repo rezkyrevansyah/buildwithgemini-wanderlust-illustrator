@@ -74,12 +74,19 @@ except ImportError:
             parts.append(base_prompt)
             return "\n\n".join(parts)
 
-MODEL = "gemini-2.5-flash"
-GCP_PROJECT_ID = "qwiklabs-gcp-04-42d301455a69"
-COLLECTION_NAME = "destinations"
-BUCKET_NAME = "wanderlust-gallery-qwiklabs-gcp-04-42d301455a69"
-AGENT_ENGINE_ID = "projects/494495082021/locations/us-east1/reasoningEngines/1386241170555797504"
-MEMORY_BANK_ID = "1386241170555797504"
+
+MODEL = os.getenv("MODEL", "gemini-2.5-flash")
+GCP_PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-04-42d301455a69")
+COLLECTION_NAME = os.getenv("FIRESTORE_COLLECTION", "destinations")
+BUCKET_NAME = os.getenv(
+    "BUCKET_NAME", "wanderlust-gallery-qwiklabs-gcp-04-42d301455a69"
+)
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
+AGENT_ENGINE_ID = os.getenv(
+    "AGENT_ENGINE_ID",
+    "projects/494495082021/locations/us-east1/reasoningEngines/1386241170555797504",
+)
+MEMORY_BANK_ID = os.getenv("MEMORY_BANK_ID", "1386241170555797504")
 
 # A2UI Schema Manager setup (v0.8 with Basic Catalog)
 schema_manager = A2uiSchemaManager(
@@ -112,7 +119,7 @@ a2ui_system_instruction = schema_manager.generate_system_prompt(
         "You may include one Image component, but only when you have a public https "
         "URL for the image (for example the URL an image tool returns after uploading "
         "to a public bucket). Set the Image url to that exact https link, for example "
-        "{\"Image\": {\"url\": {\"literalString\": \"https://...\"}}}. Never point an "
+        '{"Image": {"url": {"literalString": "https://..."}}}. Never point an '
         "Image at a bare filename, an artifact name, or a non-http(s) path. If you do "
         "not have a public URL, add a short Text line noting the image instead. "
         "No markdown in text; use the usageHint property ('h1', 'h2', 'body') for "
@@ -124,13 +131,36 @@ a2ui_system_instruction = schema_manager.generate_system_prompt(
     include_examples=True,
 )
 
-# Clients initialized with hardcoded project ID
-db = firestore.Client(project=GCP_PROJECT_ID)
-storage_client = storage.Client(project=GCP_PROJECT_ID)
-genai_client = genai.Client(vertexai=True, project=GCP_PROJECT_ID, location="global")
+
+class _LazyClientProxy:
+    """Delays client creation until first attribute access so module import never hangs or fails."""
+
+    def __init__(self, factory):
+        self._factory = factory
+        self._client = None
+
+    def _get_client(self):
+        if self._client is None:
+            self._client = self._factory()
+        return self._client
+
+    def __getattr__(self, name):
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return getattr(self._get_client(), name)
+
+
+# Clients initialized lazily with GCP project ID
+db = _LazyClientProxy(lambda: firestore.Client(project=GCP_PROJECT_ID))
+storage_client = _LazyClientProxy(lambda: storage.Client(project=GCP_PROJECT_ID))
+genai_client = genai.Client(
+    vertexai=True, project=GCP_PROJECT_ID, location=GOOGLE_CLOUD_LOCATION
+)
 
 # Agent Platform Sandbox Code Executor
-code_executor = AgentEngineSandboxCodeExecutor(agent_engine_resource_name=AGENT_ENGINE_ID)
+code_executor = AgentEngineSandboxCodeExecutor(
+    agent_engine_resource_name=AGENT_ENGINE_ID
+)
 
 
 # Memory generation callback for Vertex AI Memory Bank
@@ -140,7 +170,9 @@ async def generate_memories_callback(callback_context: CallbackContext):
     return None
 
 
-def list_destinations(vibe: Optional[str] = None, budget_level: Optional[str] = None) -> List[Dict[str, Any]]:
+def list_destinations(
+    vibe: Optional[str] = None, budget_level: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """List travel destinations from the catalog, optionally filtering by vibe or budget level.
 
     Args:
@@ -158,7 +190,10 @@ def list_destinations(vibe: Optional[str] = None, budget_level: Optional[str] = 
         data["id"] = doc.id
         if vibe and vibe.lower() not in [v.lower() for v in data.get("vibes", [])]:
             continue
-        if budget_level and budget_level.lower() != data.get("budget_level", "").lower():
+        if (
+            budget_level
+            and budget_level.lower() != data.get("budget_level", "").lower()
+        ):
             continue
         results.append(data)
     return results
@@ -248,7 +283,8 @@ async def generate_destination_postcard(
 
     image_bytes = None
     mime_type = "image/jpeg"
-    for part in response.candidates[0].content.parts:
+    parts = getattr(response.candidates[0].content, "parts", None) or []
+    for part in parts:
         if getattr(part, "inline_data", None) and part.inline_data.data:
             image_bytes = part.inline_data.data
             mime_type = part.inline_data.mime_type or "image/jpeg"
@@ -302,7 +338,11 @@ async def generate_destination_video(
     video_bytes = None
     mime_type = "video/mp4"
 
-    if hasattr(interaction, "output_video") and interaction.output_video and getattr(interaction.output_video, "data", None):
+    if (
+        hasattr(interaction, "output_video")
+        and interaction.output_video
+        and getattr(interaction.output_video, "data", None)
+    ):
         video_bytes = base64.b64decode(interaction.output_video.data)
         mime_type = getattr(interaction.output_video, "mime_type", None) or "video/mp4"
 
@@ -345,7 +385,9 @@ def get_destination_live_weather(destination_name: str) -> Dict[str, Any]:
     # 1. Geocode location name
     encoded_name = urllib.parse.quote(destination_name)
     geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded_name}&count=1&language=en&format=json"
-    req = urllib.request.Request(geo_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"})
+    req = urllib.request.Request(
+        geo_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"}
+    )
 
     try:
         with urllib.request.urlopen(req, timeout=5) as resp:
@@ -354,11 +396,15 @@ def get_destination_live_weather(destination_name: str) -> Dict[str, Any]:
         return {"error": f"Failed to geocode '{destination_name}': {str(e)}"}
 
     if not geo_data.get("results"):
-        return {"error": f"Location '{destination_name}' not found in geocoding service."}
+        return {
+            "error": f"Location '{destination_name}' not found in geocoding service."
+        }
 
     loc = geo_data["results"][0]
     lat, lon = loc["latitude"], loc["longitude"]
-    resolved_name = f"{loc.get('name', destination_name)}, {loc.get('country', '')}".strip(", ")
+    resolved_name = (
+        f"{loc.get('name', destination_name)}, {loc.get('country', '')}".strip(", ")
+    )
 
     # 2. Fetch live weather & forecast
     weather_url = (
@@ -366,7 +412,9 @@ def get_destination_live_weather(destination_name: str) -> Dict[str, Any]:
         "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m"
         "&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
     )
-    req2 = urllib.request.Request(weather_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"})
+    req2 = urllib.request.Request(
+        weather_url, headers={"User-Agent": "WanderlustTravelAgent/1.0"}
+    )
 
     try:
         with urllib.request.urlopen(req2, timeout=5) as resp2:
