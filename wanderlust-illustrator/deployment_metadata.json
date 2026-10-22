@@ -3,5 +3,6 @@
   "deployment_target": "agent_runtime",
   "is_a2a": true,
   "agent_directory": "app",
-  "deployment_timestamp": "2026-10-21T08:40:03.029261+00:00"
+  "deployment_timestamp": "2026-10-22T07:06:58.160291+00:00",
+  "language": "python"
 }
