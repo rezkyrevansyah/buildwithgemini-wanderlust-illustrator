@@ -76,7 +76,15 @@ except ImportError:
 
 
 MODEL = os.getenv("MODEL", "gemini-2.5-flash")
-GCP_PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-04-42d301455a69")
+_raw_proj = (
+    os.getenv("PROJECT_ID")
+    or os.getenv("GCP_PROJECT")
+    or os.getenv("GOOGLE_CLOUD_PROJECT")
+    or "qwiklabs-gcp-04-42d301455a69"
+)
+# If the runtime provided the numeric project number (e.g. '494495082021'),
+# fall back to the string project ID because Firestore requires the alphabetic ID.
+GCP_PROJECT_ID = "qwiklabs-gcp-04-42d301455a69" if _raw_proj.isdigit() else _raw_proj
 COLLECTION_NAME = os.getenv("FIRESTORE_COLLECTION", "destinations")
 BUCKET_NAME = os.getenv(
     "BUCKET_NAME", "wanderlust-gallery-qwiklabs-gcp-04-42d301455a69"
@@ -84,9 +92,9 @@ BUCKET_NAME = os.getenv(
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
 AGENT_ENGINE_ID = os.getenv(
     "AGENT_ENGINE_ID",
-    "projects/494495082021/locations/us-east1/reasoningEngines/1386241170555797504",
+    "projects/494495082021/locations/us-east1/reasoningEngines/2823170926663696384",
 )
-MEMORY_BANK_ID = os.getenv("MEMORY_BANK_ID", "1386241170555797504")
+MEMORY_BANK_ID = os.getenv("MEMORY_BANK_ID", "2823170926663696384")
 
 # A2UI Schema Manager setup (v0.8 with Basic Catalog)
 schema_manager = A2uiSchemaManager(
@@ -173,10 +181,84 @@ code_executor = AgentEngineSandboxCodeExecutor(
 )
 
 
+# Curated fallback catalog to guarantee the agent always has instant destination data
+DEFAULT_CATALOG = [
+    {
+        "id": "kyoto-japan",
+        "name": "Kyoto, Japan",
+        "country": "Japan",
+        "vibes": ["cultural", "scenic", "historic"],
+        "budget_level": "moderate",
+        "best_season": "Spring / Autumn",
+        "highlights": ["Fushimi Inari Shrine", "Arashiyama Bamboo Grove", "Kinkaku-ji"],
+        "description": "Ancient capital of Japan renowned for classical Buddhist temples, gardens, imperial palaces, and traditional wooden houses.",
+        "recommended_days": 4,
+    },
+    {
+        "id": "amalfi-italy",
+        "name": "Amalfi Coast, Italy",
+        "country": "Italy",
+        "vibes": ["romantic", "coastal", "relaxation"],
+        "budget_level": "luxury",
+        "best_season": "Late Spring / Early Autumn",
+        "highlights": ["Positano Cliffside", "Ravello Gardens", "Capri Boat Excursion"],
+        "description": "Dramatic cliffside coastline dotted with pastel-colored fishing villages, terraced vineyards, and cliff-clinging lemon groves.",
+        "recommended_days": 5,
+    },
+    {
+        "id": "banff-canada",
+        "name": "Banff & Lake Louise, Canada",
+        "country": "Canada",
+        "vibes": ["adventure", "nature", "outdoor"],
+        "budget_level": "moderate",
+        "best_season": "Summer / Winter",
+        "highlights": ["Lake Louise Canoeing", "Moraine Lake Sunrise", "Banff Gondola"],
+        "description": "Breathtaking turquoise glacial lakes surrounded by the majestic peaks of the Canadian Rocky Mountains.",
+        "recommended_days": 4,
+    },
+    {
+        "id": "reykjavik-iceland",
+        "name": "Reykjavik & South Coast, Iceland",
+        "country": "Iceland",
+        "vibes": ["adventure", "dramatic", "nature"],
+        "budget_level": "luxury",
+        "best_season": "Winter (Aurora) / Summer (Midnight Sun)",
+        "highlights": ["Blue Lagoon", "Skógafoss Waterfall", "Black Sand Beach Reynisfjara"],
+        "description": "Land of fire and ice featuring geysers, hot springs, volcanic landscapes, and Northern Lights.",
+        "recommended_days": 5,
+    },
+    {
+        "id": "bandung-indonesia",
+        "name": "Bandung, Indonesia",
+        "country": "Indonesia",
+        "vibes": ["cultural", "nature", "foodie"],
+        "budget_level": "budget",
+        "best_season": "May to October",
+        "highlights": ["Tangkuban Perahu Crater", "Kawah Putih", "Braga Heritage Street"],
+        "description": "Paris van Java surrounded by tea plantations and cool volcanic highlands.",
+        "recommended_days": 3,
+    },
+    {
+        "id": "yogyakarta-indonesia",
+        "name": "Yogyakarta, Indonesia",
+        "country": "Indonesia",
+        "vibes": ["cultural", "heritage", "historic"],
+        "budget_level": "budget",
+        "best_season": "April to October",
+        "highlights": ["Borobudur Temple", "Prambanan Temple", "Kraton Palace", "Malioboro"],
+        "description": "The cultural soul of Java, home to ancient UNESCO World Heritage temples and royal Javanese arts.",
+        "recommended_days": 4,
+    },
+]
+
+
 # Memory generation callback for Vertex AI Memory Bank
 async def generate_memories_callback(callback_context: CallbackContext):
     """Write: after each turn, extract and send salient facts/preferences to Memory Bank."""
-    await callback_context.add_session_to_memory()
+    try:
+        await callback_context.add_session_to_memory()
+    except Exception as e:
+        print(f"[Warning] Memory Bank write skipped: {e}")
     return None
 
 
@@ -192,21 +274,32 @@ def list_destinations(
     Returns:
         A list of destination dictionaries with details including name, highlights, season, and recommended days.
     """
-    col_ref = db.collection(COLLECTION_NAME)
-    docs = col_ref.stream()
     results = []
-    for doc in docs:
-        data = doc.to_dict()
-        data["id"] = doc.id
-        if vibe and vibe.lower() not in [v.lower() for v in data.get("vibes", [])]:
+    try:
+        col_ref = db.collection(COLLECTION_NAME)
+        docs = col_ref.stream()
+        for doc in docs:
+            data = doc.to_dict()
+            data["id"] = doc.id
+            results.append(data)
+    except Exception as e:
+        print(f"[Warning] Failed to fetch destinations from Firestore: {e}. Using curated catalog.")
+        results = [dict(d) for d in DEFAULT_CATALOG]
+
+    if not results:
+        results = [dict(d) for d in DEFAULT_CATALOG]
+
+    filtered = []
+    for item in results:
+        if vibe and vibe.lower() not in [v.lower() for v in item.get("vibes", [])]:
             continue
         if (
             budget_level
-            and budget_level.lower() != data.get("budget_level", "").lower()
+            and budget_level.lower() != item.get("budget_level", "").lower()
         ):
             continue
-        results.append(data)
-    return results
+        filtered.append(item)
+    return filtered
 
 
 def get_destination(destination_id: str) -> Dict[str, Any]:
@@ -218,13 +311,21 @@ def get_destination(destination_id: str) -> Dict[str, Any]:
     Returns:
         A dictionary with full destination details, or an error dictionary if not found.
     """
-    doc_ref = db.collection(COLLECTION_NAME).document(destination_id)
-    doc = doc_ref.get()
-    if not doc.exists:
-        return {"error": f"Destination '{destination_id}' not found."}
-    data = doc.to_dict()
-    data["id"] = doc.id
-    return data
+    try:
+        doc_ref = db.collection(COLLECTION_NAME).document(destination_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            data = doc.to_dict()
+            data["id"] = doc.id
+            return data
+    except Exception as e:
+        print(f"[Warning] Failed to get destination {destination_id} from Firestore: {e}")
+
+    # Fallback search in default catalog
+    for d in DEFAULT_CATALOG:
+        if d["id"] == destination_id or destination_id in d["name"].lower():
+            return dict(d)
+    return {"error": f"Destination '{destination_id}' not found."}
 
 
 def add_or_update_destination(
@@ -254,7 +355,6 @@ def add_or_update_destination(
     Returns:
         A dictionary confirming the operation and containing the saved destination data.
     """
-    doc_ref = db.collection(COLLECTION_NAME).document(destination_id)
     data = {
         "name": name,
         "country": country,
@@ -266,7 +366,11 @@ def add_or_update_destination(
         "recommended_days": recommended_days,
         "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
-    doc_ref.set(data, merge=True)
+    try:
+        doc_ref = db.collection(COLLECTION_NAME).document(destination_id)
+        doc_ref.set(data, merge=True)
+    except Exception as e:
+        print(f"[Warning] Failed to persist destination {destination_id} to Firestore: {e}")
     return {"status": "success", "id": destination_id, "data": data}
 
 

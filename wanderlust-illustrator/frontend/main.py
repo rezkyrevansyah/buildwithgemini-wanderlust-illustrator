@@ -24,7 +24,9 @@ Run:
   python main.py                 # -> http://localhost:8080
 """
 
+import json
 import os
+import re
 import uuid
 
 try:
@@ -145,7 +147,22 @@ def _extract_parts(parts: list) -> list[dict]:
     for p in parts:
         root = getattr(p, "root", p)
         if isinstance(root, TextPart) and getattr(root, "text", None):
-            out.append({"kind": "text", "text": root.text})
+            txt = root.text
+            # If the model or runtime wrapped A2UI into <a2a_datapart_json> inside a text part
+            if "<a2a_datapart_json>" in txt:
+                matches = re.findall(r"<a2a_datapart_json>(.*?)</a2a_datapart_json>", txt, re.DOTALL)
+                for m in matches:
+                    try:
+                        parsed = json.loads(m.strip())
+                        data_body = parsed.get("data") if isinstance(parsed, dict) else parsed
+                        out.append({"kind": "a2ui", "data": data_body})
+                    except Exception:
+                        pass
+                clean_txt = re.sub(r"<a2a_datapart_json>.*?</a2a_datapart_json>", "", txt, flags=re.DOTALL).strip()
+                if clean_txt:
+                    out.append({"kind": "text", "text": clean_txt})
+            else:
+                out.append({"kind": "text", "text": txt})
         elif getattr(root, "data", None) is not None:
             raw_data = root.data
             meta = getattr(root, "metadata", None) or {}
@@ -170,7 +187,10 @@ def _extract_parts(parts: list) -> list[dict]:
 
 @app.post("/chat")
 async def chat(req: Request):
-    body = await req.json()
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
     message = body.get("message", "")
     user_id = body.get("user_id") or "web-user"
     parts: list[dict] = []
@@ -208,15 +228,28 @@ async def chat(req: Request):
             if isinstance(update, TaskArtifactUpdateEvent):
                 got_artifact_update = True
                 parts.extend(_extract_parts(update.artifact.parts))
+            elif hasattr(update, "status"):
+                status_obj = getattr(update, "status", None)
+                msg_obj = getattr(status_obj, "message", None)
+                if msg_obj and getattr(msg_obj, "parts", None):
+                    parts.extend(_extract_parts(msg_obj.parts))
 
-        # Non-streaming fallback: pull parts from the final task's artifacts.
+        # Fallback: pull parts from final task artifacts
         if not got_artifact_update and last_task is not None:
             for artifact in getattr(last_task, "artifacts", None) or []:
                 parts.extend(_extract_parts(artifact.parts))
 
+        # Fallback: check status message or history on last_task
+        if not parts and last_task is not None:
+            status_obj = getattr(last_task, "status", None)
+            msg_obj = getattr(status_obj, "message", None)
+            if msg_obj and getattr(msg_obj, "parts", None):
+                parts.extend(_extract_parts(msg_obj.parts))
+            for hist in getattr(last_task, "history", None) or []:
+                if getattr(hist, "role", None) in (Role.model, "model"):
+                    parts.extend(_extract_parts(getattr(hist, "parts", None) or []))
+
     if not parts:
-        # The turn produced no text or UI (e.g. the agent only ran tools, or a
-        # tool stalled). Be honest rather than silent.
         parts = [{"kind": "text", "text": "(The agent didn't return a reply.)"}]
     return JSONResponse({"parts": parts})
 
