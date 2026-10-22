@@ -48,7 +48,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Header - Solid and Lightweight */
+  /* Header - Solid, Clean, and Fast */
   header {
     background: #ffffff;
     border-bottom: 1px solid var(--border);
@@ -160,7 +160,6 @@
     box-shadow: var(--shadow-xs);
     text-align: center;
     margin-bottom: 0.25rem;
-    transition: opacity 0.2s ease;
   }
 
   .welcome-title {
@@ -177,6 +176,45 @@
     line-height: 1.45;
     max-width: 560px;
     margin: 0 auto;
+  }
+
+  .welcome-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+
+  .starter-chip {
+    background: #ffffff;
+    border: 1px solid #99f6e4;
+    color: #0f766e;
+    padding: 0.42rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 118, 110, 0.08);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    user-select: none;
+    transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  }
+
+  .starter-chip:hover {
+    background: #f0fdfa;
+    border-color: #0f766e;
+    color: #115e59;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.14);
+  }
+
+  .starter-chip:active, .starter-chip.active-press {
+    transform: scale(0.96);
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
   }
 
   /* Message Bubbles - Content Visibility for Zero Reflow Jank */
@@ -276,9 +314,9 @@
   .input-wrapper {
     background: #ffffff;
     border-top: 1px solid var(--border);
-    padding: 0.5rem 1rem max(0.6rem, env(safe-area-inset-bottom));
+    padding: 0.55rem 1rem max(0.65rem, env(safe-area-inset-bottom));
     width: 100%;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
     flex-shrink: 0;
     z-index: 15;
   }
@@ -288,10 +326,50 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.42rem;
   }
 
   .suggestions-dock {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  @keyframes dockFlash {
+    0% { transform: translateY(2px); opacity: 0.5; }
+    50% { transform: translateY(-1px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .suggestions-dock.just-updated {
+    animation: dockFlash 0.22s ease-out;
+  }
+
+  .suggestions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.15rem;
+  }
+
+  .suggestions-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .suggestions-icon {
+    font-size: 14px !important;
+    color: var(--primary);
+  }
+
+  .suggestions-track {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -300,42 +378,46 @@
     -webkit-overflow-scrolling: touch;
     display: flex;
     gap: 0.45rem;
-    padding: 0.15rem 0.2rem 0.35rem;
+    padding: 0.1rem 0.1rem 0.3rem;
+    transition: opacity 0.15s ease;
   }
 
-  .suggestions-dock::-webkit-scrollbar {
+  .suggestions-track::-webkit-scrollbar {
     display: none;
   }
 
   .chip {
     background: #ffffff;
-    border: 1px solid #99f6e4;
+    border: 1px solid #ccfbf1;
     color: #0f766e;
-    padding: 0.35rem 0.75rem;
-    border-radius: 18px;
+    padding: 0.38rem 0.85rem;
+    border-radius: 9999px;
     font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.38rem;
     flex-shrink: 0;
-    box-shadow: var(--shadow-xs);
-    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    outline: 1px solid rgba(0, 0, 0, 0.04);
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
     user-select: none;
   }
 
   .chip:hover {
-    background: #0f766e;
-    color: #ffffff;
+    background: #f0fdfa;
+    color: #115e59;
     border-color: #0f766e;
+    box-shadow: 0 2px 5px rgba(15, 118, 110, 0.12);
   }
 
   .chip:active, .chip.active-press {
-    transform: scale(0.95);
-    background: #115e59;
+    transform: scale(0.96); /* Scale on press rule from better-ui */
+    background: #0f766e;
     color: #ffffff;
+    border-color: #0f766e;
   }
 
   /* Form and Input Area */
@@ -634,7 +716,7 @@
     .welcome-card { padding: 0.95rem 0.85rem; }
     .img-overlay-bar { opacity: 1; pointer-events: auto; }
     .lightbox-header { top: 0.65rem; right: 0.85rem; }
-    .chip { font-size: 0.74rem; padding: 0.3rem 0.65rem; }
+    .chip { font-size: 0.74rem; padding: 0.32rem 0.65rem; }
   }
 </style>
 </head>
@@ -658,10 +740,24 @@
 
 <div id="log">
   <div class="welcome-card" id="welcomeCard">
-    <h2 class="welcome-title">✨ Plan Your Dream Journey</h2>
+    <h2 class="welcome-title">✨ Where would you like to travel?</h2>
     <p class="welcome-desc">
-      Explore handpicked destinations, generate vivid travel postcards & teaser videos, check live weather, and design custom itineraries.
+      Explore dream destinations, get personalized itineraries, create visual postcards, and manage your travel wishlist.
     </p>
+    <div class="welcome-suggestions" id="welcomeSuggestions">
+      <button type="button" class="starter-chip" data-prompt="Show me destinations in your catalog">
+        <span>🗺️</span> <span>Explore Catalog</span>
+      </button>
+      <button type="button" class="starter-chip" data-prompt="Recommend a 5-day romantic trip to Amalfi Coast">
+        <span>🍋</span> <span>Amalfi Coast Plan</span>
+      </button>
+      <button type="button" class="starter-chip" data-prompt="Generate a vintage travel postcard for Kyoto, Japan">
+        <span>🎨</span> <span>Generate Kyoto Postcard</span>
+      </button>
+      <button type="button" class="starter-chip" data-prompt="What places are good for adventure and nature?">
+        <span>🏔️</span> <span>Adventure Spots</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -669,13 +765,15 @@
 <div class="input-wrapper">
   <div class="dock-container">
     <div class="suggestions-dock" id="suggestionsDock" aria-label="Suggested prompts">
-      <button type="button" class="chip" data-prompt="Show me destinations in your catalog">🗺️ Catalog</button>
-      <button type="button" class="chip" data-prompt="Recommend a 5-day romantic trip to Amalfi Coast">🍋 Amalfi Plan</button>
-      <button type="button" class="chip" data-prompt="Generate a vintage travel postcard for Kyoto, Japan">🎨 Kyoto Postcard</button>
-      <button type="button" class="chip" data-prompt="Generate a short scenic video of Amalfi Coast, Italy">🎬 Amalfi Video</button>
-      <button type="button" class="chip" data-prompt="What is the live weather in Kyoto right now?">🌤️ Kyoto Weather</button>
-      <button type="button" class="chip" data-prompt="What places are good for adventure and nature?">🏔️ Adventure Spots</button>
-      <button type="button" class="chip" data-prompt="Calculate a budget plan for 4 days in Banff Canada">💰 Budget Math</button>
+      <div class="suggestions-header" id="suggestionsHeader">
+        <span class="suggestions-label" id="suggestionsLabel">
+          <span class="material-symbols-outlined suggestions-icon">auto_awesome</span>
+          <span id="suggestionsTitle">Suggested Ideas</span>
+        </span>
+      </div>
+      <div class="suggestions-track" id="suggestionsTrack">
+        <!-- Rendered dynamically via JS -->
+      </div>
     </div>
     <form id="form">
       <textarea id="input" placeholder="Ask for travel ideas, itineraries, postcards, or live weather…" rows="1" autofocus></textarea>
@@ -710,6 +808,10 @@ const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const resetBtn = document.getElementById("resetBtn");
 const welcomeCard = document.getElementById("welcomeCard");
+
+// Suggestions Dock Elements
+const suggestionsTrack = document.getElementById("suggestionsTrack");
+const suggestionsTitle = document.getElementById("suggestionsTitle");
 
 // Lightbox Elements
 const lightbox = document.getElementById("lightbox");
@@ -803,17 +905,347 @@ function scrollToBottom(smooth = true) {
   });
 }
 
-// Pinned bottom suggestion chips with instant send and tactile feedback
-document.querySelectorAll(".chip").forEach(chip => {
-  chip.addEventListener("click", () => {
-    chip.classList.add("active-press");
-    setTimeout(() => chip.classList.remove("active-press"), 150);
-    if (navigator.vibrate) navigator.vibrate(12);
+/* -------------------------------------------------------------
+   DYNAMIC & PERSONALIZED SUGGESTIONS ENGINE
+   Initial suggestions when empty; personalized suggestions after conversation!
+   ------------------------------------------------------------- */
+const suggestionsDock = document.getElementById("suggestionsDock");
 
-    input.value = chip.dataset.prompt;
-    form.dispatchEvent(new Event("submit"));
+const INITIAL_SUGGESTIONS = [
+  { icon: "🗺️", label: "Explore Catalog", prompt: "Show me destinations in your catalog" },
+  { icon: "🍋", label: "Amalfi Coast Plan", prompt: "Recommend a 5-day romantic trip to Amalfi Coast" },
+  { icon: "🎨", label: "Kyoto Postcard", prompt: "Generate a vintage travel postcard for Kyoto, Japan" },
+  { icon: "🎬", label: "Amalfi Video", prompt: "Generate a short scenic video of Amalfi Coast, Italy" },
+  { icon: "🌤️", label: "Kyoto Weather", prompt: "What is the live weather in Kyoto right now?" },
+  { icon: "🏔️", label: "Adventure Spots", prompt: "What places are good for adventure and nature?" },
+  { icon: "💰", label: "Banff Budget", prompt: "Calculate a budget plan for 4 days in Banff Canada" }
+];
+
+function wireStarterChips() {
+  const starterChips = document.querySelectorAll(".starter-chip");
+  starterChips.forEach(btn => {
+    btn.onclick = () => {
+      btn.classList.add("active-press");
+      setTimeout(() => btn.classList.remove("active-press"), 150);
+      if (navigator.vibrate) navigator.vibrate(12);
+
+      const prompt = btn.dataset.prompt;
+      if (prompt) {
+        input.value = prompt;
+        form.dispatchEvent(new Event("submit"));
+      }
+    };
   });
-});
+}
+
+function renderSuggestions(items, title = "Suggested Ideas") {
+  if (suggestionsTitle) {
+    suggestionsTitle.textContent = title;
+  }
+  suggestionsTrack.style.opacity = "0.3";
+  setTimeout(() => {
+    suggestionsTrack.innerHTML = "";
+    items.forEach(item => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip";
+      btn.dataset.prompt = item.prompt;
+      btn.innerHTML = `<span>${item.icon}</span> <span>${item.label}</span>`;
+      btn.addEventListener("click", () => {
+        btn.classList.add("active-press");
+        setTimeout(() => btn.classList.remove("active-press"), 150);
+        if (navigator.vibrate) navigator.vibrate(12);
+
+        input.value = item.prompt;
+        form.dispatchEvent(new Event("submit"));
+      });
+      suggestionsTrack.appendChild(btn);
+    });
+    suggestionsTrack.style.opacity = "1";
+    suggestionsTrack.scrollLeft = 0;
+
+    if (suggestionsDock) {
+      suggestionsDock.classList.remove("just-updated");
+      void suggestionsDock.offsetWidth;
+      suggestionsDock.classList.add("just-updated");
+      setTimeout(() => suggestionsDock.classList.remove("just-updated"), 350);
+    }
+  }, 100);
+}
+
+// Initial render when no conversation has happened yet
+renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
+wireStarterChips();
+
+// Generate personalized next steps tailored to the chat topics
+function updatePersonalizedSuggestions(userPrompt, replyParts) {
+  let agentReplyText = "";
+  let hasImage = false;
+  let hasVideo = false;
+
+  for (const p of replyParts) {
+    if (p.kind === "text" && p.text) agentReplyText += " " + p.text;
+    if (p.kind === "a2ui" && p.data) {
+      const jsonStr = JSON.stringify(p.data);
+      if (jsonStr.includes('"Image"')) hasImage = true;
+      if (jsonStr.includes(".mp4")) hasVideo = true;
+      agentReplyText += " " + jsonStr;
+    }
+  }
+
+  const combined = (userPrompt + " " + agentReplyText).toLowerCase();
+
+  // Comprehensive destinations dictionary
+  const knownDests = [
+    { key: "kyoto", display: "Kyoto" },
+    { key: "tokyo", display: "Tokyo" },
+    { key: "osaka", display: "Osaka" },
+    { key: "mount fuji", display: "Mount Fuji" },
+    { key: "fuji", display: "Mount Fuji" },
+    { key: "japan", display: "Kyoto" },
+    { key: "amalfi", display: "Amalfi Coast" },
+    { key: "positano", display: "Amalfi Coast" },
+    { key: "capri", display: "Amalfi Coast" },
+    { key: "ravello", display: "Amalfi Coast" },
+    { key: "italy", display: "Amalfi Coast" },
+    { key: "rome", display: "Rome" },
+    { key: "florence", display: "Florence" },
+    { key: "venice", display: "Venice" },
+    { key: "banff", display: "Banff" },
+    { key: "lake louise", display: "Banff" },
+    { key: "jasper", display: "Banff" },
+    { key: "canada", display: "Banff" },
+    { key: "rockies", display: "Banff" },
+    { key: "reykjavik", display: "Reykjavik" },
+    { key: "blue lagoon", display: "Reykjavik" },
+    { key: "iceland", display: "Reykjavik" },
+    { key: "bali", display: "Bali" },
+    { key: "ubud", display: "Bali" },
+    { key: "indonesia", display: "Bali" },
+    { key: "paris", display: "Paris" },
+    { key: "france", display: "Paris" },
+    { key: "santorini", display: "Santorini" },
+    { key: "mykonos", display: "Santorini" },
+    { key: "greece", display: "Santorini" },
+    { key: "swiss alps", display: "Swiss Alps" },
+    { key: "switzerland", display: "Swiss Alps" },
+    { key: "zermatt", display: "Swiss Alps" },
+    { key: "hawaii", display: "Hawaii" },
+    { key: "maui", display: "Hawaii" },
+    { key: "barcelona", display: "Barcelona" },
+    { key: "madrid", display: "Madrid" },
+    { key: "london", display: "London" },
+    { key: "edinburgh", display: "Edinburgh" },
+    { key: "machu picchu", display: "Machu Picchu" },
+    { key: "peru", display: "Machu Picchu" },
+    { key: "cairo", display: "Cairo" },
+    { key: "egypt", display: "Cairo" },
+    { key: "sydney", display: "Sydney" },
+    { key: "australia", display: "Sydney" },
+    { key: "phuket", display: "Phuket" },
+    { key: "bangkok", display: "Bangkok" },
+    { key: "thailand", display: "Phuket" },
+    { key: "dubai", display: "Dubai" }
+  ];
+
+  let targetDest = null;
+  for (const d of knownDests) {
+    if (combined.includes(d.key)) {
+      targetDest = d.display;
+      break;
+    }
+  }
+
+  if (!targetDest) {
+    // Regex destination extraction fallback for arbitrary destinations
+    const m = userPrompt.match(/(?:to|in|for|about|visit|explore|trip to|travel to|vacation in)\s+([A-Z][a-zA-Z\s]{1,18})/);
+    if (m && m[1]) targetDest = m[1].trim();
+  }
+
+  const isWeatherContext = combined.includes("weather") || combined.includes("temperature") || combined.includes("celsius") || combined.includes("forecast") || combined.includes("climate") || combined.includes("sunny") || combined.includes("rain");
+  const isBudgetContext = combined.includes("budget") || combined.includes("cost") || combined.includes("dollar") || combined.includes("math") || combined.includes("currency") || combined.includes("$") || combined.includes("expense") || combined.includes("price");
+  const isPostcardContext = hasImage || combined.includes("postcard") || combined.includes("illustration") || combined.includes("art") || combined.includes("scenic view");
+  const isVideoContext = hasVideo || combined.includes("video") || combined.includes("teaser") || combined.includes("drone") || combined.includes("cinematic");
+  const isItineraryContext = combined.includes("itinerary") || combined.includes("day 1") || combined.includes("day 2") || combined.includes("5-day") || combined.includes("4-day") || combined.includes("3-day") || combined.includes("schedule") || combined.includes("days in");
+  const isCatalogContext = combined.includes("catalog") || combined.includes("destinations") || combined.includes("destinations in your") || combined.includes("show me destinations");
+  const isWishlistContext = combined.includes("wishlist") || combined.includes("bucket list") || combined.includes("remember") || combined.includes("saved to my wishlist");
+
+  const nextSteps = [];
+
+  if (targetDest) {
+    // Highly personalized suggestions when a specific destination is discussed
+    if (!isPostcardContext) {
+      nextSteps.push({
+        icon: "🎨",
+        label: `${targetDest} Postcard`,
+        prompt: `Generate a beautiful travel postcard illustration for ${targetDest}`
+      });
+    }
+    if (!isVideoContext) {
+      nextSteps.push({
+        icon: "🎬",
+        label: `${targetDest} Video`,
+        prompt: `Generate a short scenic video teaser for ${targetDest}`
+      });
+    }
+    if (!isWeatherContext) {
+      nextSteps.push({
+        icon: "🌤️",
+        label: `${targetDest} Weather`,
+        prompt: `What is the live weather and climate in ${targetDest} right now?`
+      });
+    }
+    if (!isItineraryContext) {
+      nextSteps.push({
+        icon: "🗓️",
+        label: `4-Day Itinerary`,
+        prompt: `Plan a detailed day-by-day 4-day itinerary for ${targetDest}`
+      });
+    }
+    if (!isBudgetContext) {
+      nextSteps.push({
+        icon: "💰",
+        label: `Trip Budget`,
+        prompt: `Calculate estimated travel budget and costs for 4 days in ${targetDest}`
+      });
+    }
+    if (isPostcardContext) {
+      nextSteps.push({
+        icon: "🎨",
+        label: `Watercolor Postcard`,
+        prompt: `Generate a vibrant watercolor style postcard for ${targetDest}`
+      });
+    }
+    if (isWeatherContext) {
+      nextSteps.push({
+        icon: "🧳",
+        label: `What to Pack`,
+        prompt: `What clothes and essentials should I pack for the current weather in ${targetDest}?`
+      });
+    }
+    if (isBudgetContext) {
+      nextSteps.push({
+        icon: "🎟️",
+        label: `Free Activities`,
+        prompt: `What are the best free and low-cost things to do in ${targetDest}?`
+      });
+    }
+    nextSteps.push({
+      icon: "🍜",
+      label: `Must-Try Food`,
+      prompt: `What are the must-try local specialties and hidden gem spots in ${targetDest}?`
+    });
+    nextSteps.push({
+      icon: "🏨",
+      label: `Where to Stay`,
+      prompt: `What are the best neighborhoods and recommended places to stay in ${targetDest}?`
+    });
+    nextSteps.push({
+      icon: "💌",
+      label: `Save to Wishlist`,
+      prompt: `Please save ${targetDest} to my travel wishlist`
+    });
+  } else if (isWishlistContext) {
+    // Topic: Travel Wishlist & Long-term Memory
+    nextSteps.push({
+      icon: "📜",
+      label: "View Saved Wishlist",
+      prompt: "What destinations do you currently have saved in my wishlist?"
+    });
+    nextSteps.push({
+      icon: "🗓️",
+      label: "Itinerary from Wishlist",
+      prompt: "Plan a dream itinerary based on my saved travel wishlist"
+    });
+    nextSteps.push({
+      icon: "🎨",
+      label: "Top Wishlist Postcard",
+      prompt: "Generate a postcard illustration for the top destination on my travel wishlist"
+    });
+    nextSteps.push({
+      icon: "🎬",
+      label: "Wishlist Video",
+      prompt: "Generate a scenic video teaser of the top spot on my travel wishlist"
+    });
+    nextSteps.push({
+      icon: "➕",
+      label: "Add Dream Spot",
+      prompt: "Add another dream destination to my travel wishlist"
+    });
+    nextSteps.push({
+      icon: "💰",
+      label: "Compare Trip Costs",
+      prompt: "Compare estimated travel budgets between destinations on my wishlist"
+    });
+  } else if (isCatalogContext) {
+    // Topic: Catalog exploration
+    nextSteps.push({
+      icon: "🍋",
+      label: "Amalfi Coast Plan",
+      prompt: "Recommend a 5-day romantic trip to Amalfi Coast"
+    });
+    nextSteps.push({
+      icon: "🎨",
+      label: "Kyoto Postcard",
+      prompt: "Generate a vintage travel postcard for Kyoto, Japan"
+    });
+    nextSteps.push({
+      icon: "🏔️",
+      label: "Banff Canadian Rockies",
+      prompt: "Tell me about Banff & Lake Louise in Canada"
+    });
+    nextSteps.push({
+      icon: "🌋",
+      label: "Reykjavik Iceland",
+      prompt: "Tell me about Reykjavik and South Coast Iceland"
+    });
+    nextSteps.push({
+      icon: "✨",
+      label: "Luxury Escapes",
+      prompt: "Show me luxury tier destinations in the catalog"
+    });
+    nextSteps.push({
+      icon: "💰",
+      label: "Budget Destinations",
+      prompt: "Which destinations in the catalog are best for budget travelers?"
+    });
+  } else {
+    // General topic continuation
+    nextSteps.push({
+      icon: "🗺️",
+      label: "Browse Destinations",
+      prompt: "Show me destinations in your catalog"
+    });
+    nextSteps.push({
+      icon: "🎨",
+      label: "Illustrate Postcard",
+      prompt: "Generate a scenic travel postcard illustration"
+    });
+    nextSteps.push({
+      icon: "🎬",
+      label: "Scenic Video",
+      prompt: "Generate a short scenic video teaser for a dream destination"
+    });
+    nextSteps.push({
+      icon: "🌤️",
+      label: "Check Live Weather",
+      prompt: "Check live weather for a popular destination"
+    });
+    nextSteps.push({
+      icon: "💰",
+      label: "Calculate Budget",
+      prompt: "Help me calculate travel expenses and currency conversion"
+    });
+    nextSteps.push({
+      icon: "💌",
+      label: "Travel Wishlist",
+      prompt: "What destinations are saved on my travel wishlist?"
+    });
+  }
+
+  const title = targetDest ? `What you can do next with ${targetDest}:` : (isWishlistContext ? "What you can do next with your Wishlist:" : "What you can do next:");
+  renderSuggestions(nextSteps.slice(0, 7), title);
+}
 
 // Reset session
 resetBtn.addEventListener("click", () => {
@@ -821,7 +1253,11 @@ resetBtn.addEventListener("click", () => {
     userId = "user-" + Math.random().toString(36).substring(2, 10);
     localStorage.setItem("wanderlust_user_id", userId);
     log.innerHTML = "";
-    if (welcomeCard) log.appendChild(welcomeCard);
+    if (welcomeCard) {
+      log.appendChild(welcomeCard);
+      wireStarterChips();
+    }
+    renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
     input.value = "";
     input.focus();
   }
@@ -1055,7 +1491,11 @@ form.addEventListener("submit", async (ev) => {
       throw new Error(`Server error (HTTP ${res.status}). ${raw.slice(0, 200)}`);
     }
 
-    renderReply(b, data.parts || []);
+    const parts = data.parts || [];
+    renderReply(b, parts);
+
+    // Dynamically update suggestions based on the topic of the conversation!
+    updatePersonalizedSuggestions(text, parts);
   } catch (e) {
     removeTypingIndicator();
     const b = bubble("agent");
