@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Wanderlust Illustrator — AI Travel Planner</title>
+<title>Wanderlust Illustrator — AI Travel Planner & Worldwide Explorer</title>
 <!-- Google Fonts: Plus Jakarta Sans & Outfit with display=swap for high performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,8 @@
     --user-bubble: #0f766e;
     --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
     --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.12);
   }
 
   *, *::before, *::after {
@@ -52,7 +53,7 @@
   header {
     background: #ffffff;
     border-bottom: 1px solid var(--border);
-    padding: 0.75rem 1.25rem;
+    padding: 0.65rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -64,6 +65,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    cursor: pointer;
   }
 
   .brand-icon {
@@ -100,28 +102,69 @@
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
+  }
+
+  .btn-header {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 0.38rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+
+  .btn-header:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--primary-dark);
+  }
+
+  .btn-header.highlight {
+    background: var(--primary-light);
+    border-color: #99f6e4;
+    color: var(--primary);
+  }
+
+  .btn-header.highlight:hover {
+    background: #ccfbf1;
   }
 
   .btn-reset {
-    background: transparent;
-    border: 1px solid var(--border);
-    padding: 0.35rem 0.75rem;
-    border-radius: 7px;
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 0.38rem 0.75rem;
+    border-radius: 8px;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: #ffffff;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(15, 118, 110, 0.2);
   }
 
   .btn-reset:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+  }
+
+  .history-badge {
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 700;
   }
 
   /* Chat Canvas - Hardware-Accelerated Smooth Scroll */
@@ -157,7 +200,7 @@
     background: #ffffff;
     border: 1px solid #ccfbf1;
     border-radius: 14px;
-    padding: 1.1rem 1.25rem;
+    padding: 1.25rem 1.35rem;
     box-shadow: var(--shadow-xs);
     text-align: center;
     margin-bottom: 0.25rem;
@@ -165,18 +208,38 @@
 
   .welcome-title {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #115e59;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
   }
 
   .welcome-desc {
     color: var(--text-muted);
-    font-size: 0.86rem;
-    line-height: 1.45;
-    max-width: 560px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    max-width: 600px;
     margin: 0 auto;
+  }
+
+  .welcome-badges {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  .welcome-pill {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
 
   .welcome-suggestions {
@@ -414,7 +477,7 @@
   }
 
   .chip:active, .chip.active-press {
-    transform: scale(0.96); /* Scale on press rule from better-ui */
+    transform: scale(0.96);
     background: #0f766e;
     color: #ffffff;
     border-color: #0f766e;
@@ -700,6 +763,537 @@
     to { opacity: 1; transform: scale(1); }
   }
 
+  /* -------------------------------------------------------------
+     TRIP HISTORY DRAWER
+     Slide-out panel for browsing and restoring past conversations
+     ------------------------------------------------------------- */
+  .drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 80;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(2px);
+  }
+
+  .drawer-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .drawer-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 81;
+  }
+
+  .drawer-backdrop.active .drawer-panel {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .drawer-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drawer-title-group h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+
+  .btn-icon:hover {
+    background: #f1f5f9;
+    color: var(--text-main);
+  }
+
+  .drawer-actions {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border-light);
+    background: #f8fafc;
+  }
+
+  .btn-primary-sm {
+    width: 100%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: background-color 0.15s ease;
+  }
+
+  .btn-primary-sm:hover {
+    background: var(--primary-dark);
+  }
+
+  .session-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .session-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .session-card:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .session-card.active {
+    border-color: var(--primary);
+    background: #f0fdfa;
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+  }
+
+  .session-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .session-card-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+  }
+
+  .session-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .session-del-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .session-del-btn:hover {
+    color: #ef4444;
+    background: #fee2e2;
+  }
+
+  /* -------------------------------------------------------------
+     WORLDWIDE EXPLORER MODAL
+     Interactive city catalog with live search across 195+ countries
+     ------------------------------------------------------------- */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(3px);
+  }
+
+  .modal-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-window {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 860px;
+    max-width: 100%;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+
+  @keyframes modalIn {
+    from { transform: scale(0.96) translateY(8px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+  }
+
+  .modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .modal-title-group h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .modal-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 0.6rem 0.9rem;
+    transition: all 0.15s ease;
+  }
+
+  .search-box:focus-within {
+    border-color: var(--primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  }
+
+  .search-box input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    color: var(--text-main);
+    outline: none;
+    font-family: inherit;
+  }
+
+  .search-icon {
+    color: var(--primary);
+    font-size: 20px !important;
+  }
+
+  .btn-icon-sm {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Live Search Results */
+  .city-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #ccfbf1;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .city-result-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+  }
+
+  .city-result-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .city-result-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .city-result-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .city-meta-pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+  }
+
+  .city-extract {
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #475569;
+  }
+
+  .city-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+  }
+
+  .action-chip {
+    background: #ffffff;
+    border: 1px solid #ccfbf1;
+    color: #0f766e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.65rem;
+    border-radius: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s ease;
+  }
+
+  .action-chip:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
+  /* Curated Catalog Section */
+  .catalog-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .catalog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .catalog-header h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .catalog-tabs {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+  }
+
+  .cat-tab {
+    background: #f1f5f9;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .cat-tab:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+  }
+
+  .cat-tab.active {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  .curated-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .curated-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .curated-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .curated-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .curated-card-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .curated-card-vibe {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #0f766e;
+    background: #f0fdfa;
+    padding: 0.15rem 0.45rem;
+    border-radius: 8px;
+    border: 1px solid #ccfbf1;
+  }
+
+  .curated-card-highlights {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .curated-card-actions {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: auto;
+  }
+
+  .curated-card-actions button {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .curated-card-actions button:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+
   .material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-size: 1.2rem;
@@ -709,21 +1303,26 @@
 
   /* Mobile responsiveness */
   @media (max-width: 640px) {
-    header { padding: 0.65rem 0.85rem; }
+    header { padding: 0.6rem 0.85rem; }
+    .brand-title { font-size: 0.95rem; }
+    .brand-badge { display: none; }
     #log { padding: 0.85rem 0.75rem 0.5rem; gap: 0.85rem; }
     .msg { max-width: 94%; }
     .a2card { padding: 0.9rem; }
-    .welcome-card { padding: 0.95rem 0.85rem; }
+    .welcome-card { padding: 1rem 0.85rem; }
     .img-overlay-bar { opacity: 1; pointer-events: auto; }
     .lightbox-header { top: 0.65rem; right: 0.85rem; }
     .chip { font-size: 0.74rem; padding: 0.32rem 0.65rem; }
+    .curated-grid { grid-template-columns: 1fr; }
+    .modal-window { max-height: 94vh; }
+    .btn-header span:not(.material-symbols-outlined) { display: none; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
+  <div class="brand" id="brandBtn" title="Back to welcome screen">
     <div class="brand-icon">
       <span class="material-symbols-outlined" style="color: #fff; font-size: 19px;">travel_explore</span>
     </div>
@@ -731,8 +1330,17 @@
     <span class="brand-badge">Agentic AI</span>
   </div>
   <div class="header-actions">
+    <button id="exploreBtn" class="btn-header highlight" title="Explore Worldwide Cities">
+      <span class="material-symbols-outlined" style="font-size: 17px; color: #0f766e;">public</span>
+      <span>Worldwide Catalog</span>
+    </button>
+    <button id="historyBtn" class="btn-header" title="Trip History">
+      <span class="material-symbols-outlined" style="font-size: 17px;">history</span>
+      <span>Trips</span>
+      <span id="historyCountBadge" class="history-badge">0</span>
+    </button>
     <button id="resetBtn" class="btn-reset" title="Start new travel planning session">
-      <span class="material-symbols-outlined" style="font-size: 15px;">refresh</span>
+      <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
       <span>New Trip</span>
     </button>
   </div>
@@ -742,8 +1350,14 @@
   <div class="welcome-card" id="welcomeCard">
     <h2 class="welcome-title">✨ Where would you like to travel?</h2>
     <p class="welcome-desc">
-      Explore dream destinations, get personalized itineraries, create visual postcards, and manage your travel wishlist.
+      Explore dream destinations worldwide, get personalized itineraries, create visual postcards, and manage your travel wishlist.
     </p>
+    <div class="welcome-badges">
+      <span class="welcome-pill">🌍 195+ Countries Live Search</span>
+      <span class="welcome-pill">🎨 AI Postcard Generator</span>
+      <span class="welcome-pill">🌤️ Real-Time Weather</span>
+      <span class="welcome-pill">💾 Auto-Saved History</span>
+    </div>
     <div class="welcome-suggestions" id="welcomeSuggestions">
       <button type="button" class="starter-chip" data-prompt="Show me destinations in your catalog">
         <span>🗺️</span> <span>Explore Catalog</span>
@@ -776,7 +1390,7 @@
       </div>
     </div>
     <form id="form">
-      <textarea id="input" placeholder="Ask for travel ideas, itineraries, postcards, or live weather…" rows="1" autofocus></textarea>
+      <textarea id="input" placeholder="Ask for any city in the world, itineraries, postcards, or live weather…" rows="1" autofocus></textarea>
       <button type="submit" class="send-btn" id="sendBtn" title="Send message">
         <span class="material-symbols-outlined" style="font-size: 19px;">send</span>
       </button>
@@ -801,13 +1415,82 @@
   </div>
 </div>
 
+<!-- Trip History Drawer -->
+<div id="historyDrawer" class="drawer-backdrop">
+  <aside class="drawer-panel">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <span class="material-symbols-outlined" style="color:var(--primary); font-size:20px;">travel_explore</span>
+        <h3>Your Trips & History</h3>
+      </div>
+      <button id="closeDrawerBtn" class="btn-icon" title="Close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="drawer-actions">
+      <button id="drawerNewTripBtn" class="btn-primary-sm">
+        <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+        <span>Start New Trip</span>
+      </button>
+    </div>
+    <div id="drawerSessionList" class="session-list">
+      <!-- Populated via JS -->
+    </div>
+  </aside>
+</div>
+
+<!-- Worldwide Explorer Modal -->
+<div id="exploreModal" class="modal-backdrop">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined" style="color:var(--primary); font-size:24px;">public</span>
+        <div>
+          <h3>Worldwide City Catalog & Explorer</h3>
+          <p class="modal-subtitle">Search any city, town, or capital across 195+ countries</p>
+        </div>
+      </div>
+      <button id="closeExploreBtn" class="btn-icon" title="Close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="search-box">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="citySearchInput" placeholder="Search any city worldwide (e.g., Bandung, Zurich, Reykjavik, Cape Town, Cairo)..." autocomplete="off" />
+        <button id="citySearchClear" class="btn-icon-sm" style="display:none;"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div id="citySearchResults" class="city-search-results" style="display:none;"></div>
+
+      <div class="catalog-section">
+        <div class="catalog-header">
+          <h4>Iconic Global Destinations</h4>
+          <div class="catalog-tabs" id="catalogTabs">
+            <button class="cat-tab active" data-tab="all">All</button>
+            <button class="cat-tab" data-tab="Asia">Asia</button>
+            <button class="cat-tab" data-tab="Europe">Europe</button>
+            <button class="cat-tab" data-tab="Americas">Americas</button>
+            <button class="cat-tab" data-tab="Africa">Africa</button>
+            <button class="cat-tab" data-tab="Oceania">Oceania</button>
+          </div>
+        </div>
+        <div id="curatedGrid" class="curated-grid">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const log = document.getElementById("log");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const resetBtn = document.getElementById("resetBtn");
+const brandBtn = document.getElementById("brandBtn");
 const welcomeCard = document.getElementById("welcomeCard");
+
+// Header Action Buttons
+const exploreBtn = document.getElementById("exploreBtn");
+const historyBtn = document.getElementById("historyBtn");
+const historyCountBadge = document.getElementById("historyCountBadge");
 
 // Suggestions Dock Elements
 const suggestionsTrack = document.getElementById("suggestionsTrack");
@@ -819,8 +1502,140 @@ const lbImg = document.getElementById("lbImg");
 const lbCloseBtn = document.getElementById("lbCloseBtn");
 const lbDownloadBtn = document.getElementById("lbDownloadBtn");
 
-let activeImgUrl = "";
+// Trip History Drawer Elements
+const historyDrawer = document.getElementById("historyDrawer");
+const closeDrawerBtn = document.getElementById("closeDrawerBtn");
+const drawerNewTripBtn = document.getElementById("drawerNewTripBtn");
+const drawerSessionList = document.getElementById("drawerSessionList");
 
+// Worldwide Explorer Modal Elements
+const exploreModal = document.getElementById("exploreModal");
+const closeExploreBtn = document.getElementById("closeExploreBtn");
+const citySearchInput = document.getElementById("citySearchInput");
+const citySearchClear = document.getElementById("citySearchClear");
+const citySearchResults = document.getElementById("citySearchResults");
+const curatedGrid = document.getElementById("curatedGrid");
+const catalogTabs = document.getElementById("catalogTabs");
+
+let activeImgUrl = "";
+let cachedWorldwideDestinations = [];
+
+/* -------------------------------------------------------------
+ * 1. PERSISTENT SESSION VAULT (Zero Data Loss on Reload)
+ * ------------------------------------------------------------- */
+const VAULT_STORAGE_KEY = "wanderlust_chat_vault_v1";
+
+const SessionVault = {
+  getVault() {
+    try {
+      const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.warn("Failed to read SessionVault:", e);
+    }
+    return { activeId: null, sessions: {} };
+  },
+
+  saveVault(vault) {
+    try {
+      localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(vault));
+      updateHistoryBadge();
+    } catch (e) {
+      console.warn("Failed to save SessionVault:", e);
+    }
+  },
+
+  getActiveSession() {
+    const vault = this.getVault();
+    if (vault.activeId && vault.sessions[vault.activeId]) {
+      return vault.sessions[vault.activeId];
+    }
+    // Create new session if none exists
+    return this.createSession("New Trip");
+  },
+
+  createSession(title = "New Trip") {
+    const vault = this.getVault();
+    const id = "sess-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6);
+    const userId = "user-" + Math.random().toString(36).substring(2, 10);
+    const newSession = {
+      id: id,
+      userId: userId,
+      title: title,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      messages: [],
+      suggestions: null,
+      suggestionsTitle: null
+    };
+    vault.sessions[id] = newSession;
+    vault.activeId = id;
+    this.saveVault(vault);
+    return newSession;
+  },
+
+  addMessage(sessionOrId, msg) {
+    const vault = this.getVault();
+    const id = typeof sessionOrId === "string" ? sessionOrId : sessionOrId.id;
+    if (!vault.sessions[id]) return;
+    vault.sessions[id].messages.push(msg);
+    vault.sessions[id].updatedAt = Date.now();
+
+    // Auto-derive title if currently "New Trip"
+    if (vault.sessions[id].title === "New Trip" && msg.who === "user" && msg.text) {
+      const clean = msg.text.trim().replace(/^(hi|hello|hey|please|can you|help me)\s+/i, "");
+      vault.sessions[id].title = clean.length > 30 ? clean.substring(0, 30) + "…" : clean;
+    }
+
+    this.saveVault(vault);
+  },
+
+  updateSuggestions(id, suggestions, title) {
+    const vault = this.getVault();
+    if (vault.sessions[id]) {
+      vault.sessions[id].suggestions = suggestions;
+      vault.sessions[id].suggestionsTitle = title;
+      this.saveVault(vault);
+    }
+  },
+
+  switchSession(id) {
+    const vault = this.getVault();
+    if (vault.sessions[id]) {
+      vault.activeId = id;
+      this.saveVault(vault);
+      return vault.sessions[id];
+    }
+    return null;
+  },
+
+  deleteSession(id) {
+    const vault = this.getVault();
+    if (vault.sessions[id]) {
+      delete vault.sessions[id];
+      if (vault.activeId === id) {
+        const remaining = Object.keys(vault.sessions);
+        vault.activeId = remaining.length > 0 ? remaining[remaining.length - 1] : null;
+      }
+      this.saveVault(vault);
+    }
+  }
+};
+
+let currentSession = SessionVault.getActiveSession();
+let userId = currentSession.userId;
+
+function updateHistoryBadge() {
+  const vault = SessionVault.getVault();
+  const count = Object.keys(vault.sessions || {}).length;
+  if (historyCountBadge) {
+    historyCountBadge.textContent = count;
+  }
+}
+
+/* -------------------------------------------------------------
+ * 2. LIGHTBOX PREVIEWS
+ * ------------------------------------------------------------- */
 function openLightbox(url) {
   activeImgUrl = url;
   lbImg.src = url;
@@ -866,19 +1681,340 @@ lbDownloadBtn.addEventListener("click", () => {
 });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && lightbox.classList.contains("active")) {
-    closeLightbox();
+  if (e.key === "Escape") {
+    if (lightbox.classList.contains("active")) closeLightbox();
+    if (historyDrawer.classList.contains("active")) closeDrawer();
+    if (exploreModal.classList.contains("active")) closeExplore();
   }
 });
 
-// Multi-turn session persistence
-let userId = localStorage.getItem("wanderlust_user_id");
-if (!userId) {
-  userId = "user-" + Math.random().toString(36).substring(2, 10);
-  localStorage.setItem("wanderlust_user_id", userId);
+/* -------------------------------------------------------------
+ * 3. TRIP HISTORY DRAWER LOGIC
+ * ------------------------------------------------------------- */
+function openDrawer() {
+  renderDrawerSessions();
+  historyDrawer.classList.add("active");
 }
 
-// Auto-resizing textarea
+function closeDrawer() {
+  historyDrawer.classList.remove("active");
+}
+
+historyBtn.addEventListener("click", openDrawer);
+closeDrawerBtn.addEventListener("click", closeDrawer);
+historyDrawer.addEventListener("click", (e) => {
+  if (e.target === historyDrawer) closeDrawer();
+});
+
+drawerNewTripBtn.addEventListener("click", () => {
+  closeDrawer();
+  startNewTrip();
+});
+
+function formatTimeAgo(ts) {
+  const diffSec = Math.floor((Date.now() - ts) / 1000);
+  if (diffSec < 60) return "Just now";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function renderDrawerSessions() {
+  drawerSessionList.innerHTML = "";
+  const vault = SessionVault.getVault();
+  const sessions = Object.values(vault.sessions || {}).sort((a, b) => b.updatedAt - a.updatedAt);
+
+  if (sessions.length === 0) {
+    drawerSessionList.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:2rem 1rem; font-size:0.85rem;">No trips saved yet. Start exploring!</div>`;
+    return;
+  }
+
+  sessions.forEach(sess => {
+    const card = el("div", "session-card" + (sess.id === currentSession.id ? " active" : ""));
+    
+    const header = el("div", "session-card-header");
+    const title = el("div", "session-card-title", sess.title || "Untitled Trip");
+    const delBtn = el("button", "session-del-btn");
+    delBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">delete</span>`;
+    delBtn.title = "Delete trip";
+    delBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (confirm(`Delete trip "${sess.title}"?`)) {
+        SessionVault.deleteSession(sess.id);
+        if (currentSession.id === sess.id) {
+          startNewTrip();
+        } else {
+          renderDrawerSessions();
+        }
+      }
+    });
+
+    header.appendChild(title);
+    header.appendChild(delBtn);
+
+    const meta = el("div", "session-card-meta");
+    const count = (sess.messages || []).length;
+    const msgLabel = el("span", null, `${count} message${count === 1 ? "" : "s"}`);
+    const timeLabel = el("span", null, formatTimeAgo(sess.updatedAt));
+
+    meta.appendChild(msgLabel);
+    meta.appendChild(timeLabel);
+
+    card.appendChild(header);
+    card.appendChild(meta);
+
+    card.addEventListener("click", () => {
+      if (sess.id !== currentSession.id) {
+        currentSession = SessionVault.switchSession(sess.id);
+        userId = currentSession.userId;
+        restoreSessionUI(currentSession);
+      }
+      closeDrawer();
+    });
+
+    drawerSessionList.appendChild(card);
+  });
+}
+
+function startNewTrip() {
+  currentSession = SessionVault.createSession("New Trip");
+  userId = currentSession.userId;
+  log.innerHTML = "";
+  if (welcomeCard) {
+    log.appendChild(welcomeCard);
+    wireStarterChips();
+  }
+  renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
+  input.value = "";
+  input.focus();
+  scrollToBottom(false);
+}
+
+resetBtn.addEventListener("click", () => {
+  if (confirm("Start a new travel planning trip?")) {
+    startNewTrip();
+  }
+});
+
+brandBtn.addEventListener("click", () => {
+  if (currentSession.messages.length > 0) {
+    if (confirm("Go back to a fresh travel session?")) {
+      startNewTrip();
+    }
+  }
+});
+
+/* -------------------------------------------------------------
+ * 4. WORLDWIDE EXPLORER MODAL & PUBLIC APIS
+ * ------------------------------------------------------------- */
+function openExplore() {
+  exploreModal.classList.add("active");
+  if (cachedWorldwideDestinations.length === 0) {
+    loadWorldwideDestinations();
+  }
+  setTimeout(() => citySearchInput.focus(), 150);
+}
+
+function closeExplore() {
+  exploreModal.classList.remove("active");
+}
+
+exploreBtn.addEventListener("click", openExplore);
+closeExploreBtn.addEventListener("click", closeExplore);
+exploreModal.addEventListener("click", (e) => {
+  if (e.target === exploreModal) closeExplore();
+});
+
+// Load Curated Destinations
+async function loadWorldwideDestinations() {
+  try {
+    const res = await fetch("/api/destinations/worldwide");
+    const data = await res.json();
+    cachedWorldwideDestinations = data.destinations || [];
+    renderCuratedGrid("all");
+  } catch (e) {
+    console.error("Failed to load worldwide destinations:", e);
+  }
+}
+
+function renderCuratedGrid(continentFilter = "all") {
+  curatedGrid.innerHTML = "";
+  const list = continentFilter === "all" 
+    ? cachedWorldwideDestinations 
+    : cachedWorldwideDestinations.filter(d => d.continent.toLowerCase() === continentFilter.toLowerCase());
+
+  list.forEach(dest => {
+    const card = el("div", "curated-card");
+
+    const top = el("div", "curated-card-top");
+    const name = el("div", "curated-card-name");
+    name.innerHTML = `<span>${dest.flag}</span> <span>${dest.name}</span>`;
+    const vibe = el("span", "curated-card-vibe", dest.vibe || "Scenic");
+    top.appendChild(name);
+    top.appendChild(vibe);
+
+    const highlights = el("div", "curated-card-highlights");
+    highlights.textContent = (dest.highlights || []).slice(0, 2).join(" • ");
+
+    const actions = el("div", "curated-card-actions");
+
+    const pcBtn = el("button", null, "🎨 Postcard");
+    pcBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeExplore();
+      sendCustomPrompt(`Generate a beautiful travel postcard illustration for ${dest.name}, ${dest.country}`);
+    });
+
+    const itBtn = el("button", null, "🗓️ 4-Day Plan");
+    itBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeExplore();
+      sendCustomPrompt(`Plan a detailed 4-day itinerary for ${dest.name}, ${dest.country}`);
+    });
+
+    const wtBtn = el("button", null, "🌤️ Weather");
+    wtBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeExplore();
+      sendCustomPrompt(`What is the live weather and climate in ${dest.name}, ${dest.country} right now?`);
+    });
+
+    actions.appendChild(pcBtn);
+    actions.appendChild(itBtn);
+    actions.appendChild(wtBtn);
+
+    card.appendChild(top);
+    card.appendChild(highlights);
+    card.appendChild(actions);
+
+    card.addEventListener("click", () => {
+      closeExplore();
+      sendCustomPrompt(`Tell me about visiting ${dest.name}, ${dest.country}. What are the top things to do, best season, and must-try foods?`);
+    });
+
+    curatedGrid.appendChild(card);
+  });
+}
+
+// Catalog continent tabs
+catalogTabs.addEventListener("click", (e) => {
+  const tab = e.target.closest(".cat-tab");
+  if (!tab) return;
+  catalogTabs.querySelectorAll(".cat-tab").forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  renderCuratedGrid(tab.getAttribute("data-tab"));
+});
+
+// Live Worldwide City Search (Debounced 280ms)
+let searchDebounceTimer = null;
+
+citySearchInput.addEventListener("input", function() {
+  const q = this.value.trim();
+  citySearchClear.style.display = q ? "flex" : "none";
+  clearTimeout(searchDebounceTimer);
+
+  if (!q) {
+    citySearchResults.style.display = "none";
+    citySearchResults.innerHTML = "";
+    return;
+  }
+
+  searchDebounceTimer = setTimeout(async () => {
+    citySearchResults.style.display = "flex";
+    citySearchResults.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:0.75rem; font-size:0.85rem;"><span class="material-symbols-outlined" style="animation:spin 1s infinite linear; font-size:18px; vertical-align:middle;">progress_activity</span> Searching cities worldwide...</div>`;
+
+    try {
+      const res = await fetch(`/api/cities/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      renderSearchResults(data.results || [], q);
+    } catch (err) {
+      citySearchResults.innerHTML = `<div style="color:#ef4444; font-size:0.85rem; padding:0.5rem;">Error searching cities: ${err.message}</div>`;
+    }
+  }, 280);
+});
+
+citySearchClear.addEventListener("click", () => {
+  citySearchInput.value = "";
+  citySearchClear.style.display = "none";
+  citySearchResults.style.display = "none";
+  citySearchResults.innerHTML = "";
+  citySearchInput.focus();
+});
+
+function renderSearchResults(results, query) {
+  citySearchResults.innerHTML = "";
+  if (results.length === 0) {
+    citySearchResults.innerHTML = `
+      <div style="text-align:center; padding:0.8rem; font-size:0.85rem; color:var(--text-muted);">
+        No exact city match found for "<strong>${query}</strong>". You can still ask the AI directly!
+        <div style="margin-top:0.5rem;">
+          <button class="action-chip" onclick="closeExplore(); sendCustomPrompt('Tell me about traveling to ${query.replace(/'/g, "\\'")}')">Ask AI about ${query}</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  results.forEach(city => {
+    const card = el("div", "city-result-card");
+    const top = el("div", "city-result-top");
+    const title = el("div", "city-result-title");
+    title.innerHTML = `<span>${city.flag}</span> <span>${city.name}</span>, <span style="font-size:0.85rem; font-weight:500; color:var(--text-muted);">${city.country || city.admin1 || ""}</span>`;
+
+    const meta = el("div", "city-meta-pill", city.timezone || "Global");
+    top.appendChild(title);
+    top.appendChild(meta);
+    card.appendChild(top);
+
+    if (city.extract) {
+      const extract = el("div", "city-extract", city.extract.length > 200 ? city.extract.substring(0, 200) + "…" : city.extract);
+      card.appendChild(extract);
+    }
+
+    const actions = el("div", "city-actions");
+
+    const pcChip = el("button", "action-chip", "🎨 Generate Postcard");
+    pcChip.addEventListener("click", () => {
+      closeExplore();
+      sendCustomPrompt(`Generate a scenic travel postcard illustration for ${city.name}, ${city.country}`);
+    });
+
+    const itChip = el("button", "action-chip", "🗓️ 4-Day Itinerary");
+    itChip.addEventListener("click", () => {
+      closeExplore();
+      sendCustomPrompt(`Plan a detailed 4-day travel itinerary for ${city.name}, ${city.country}`);
+    });
+
+    const wtChip = el("button", "action-chip", "🌤️ Live Weather");
+    wtChip.addEventListener("click", () => {
+      closeExplore();
+      sendCustomPrompt(`What is the current live weather and climate in ${city.name}, ${city.country}?`);
+    });
+
+    const vdChip = el("button", "action-chip", "🎬 Video Teaser");
+    vdChip.addEventListener("click", () => {
+      closeExplore();
+      sendCustomPrompt(`Generate a short scenic video teaser for ${city.name}, ${city.country}`);
+    });
+
+    actions.appendChild(pcChip);
+    actions.appendChild(itChip);
+    actions.appendChild(wtChip);
+    actions.appendChild(vdChip);
+    card.appendChild(actions);
+
+    citySearchResults.appendChild(card);
+  });
+}
+
+function sendCustomPrompt(text) {
+  input.value = text;
+  form.dispatchEvent(new Event("submit"));
+}
+
+/* -------------------------------------------------------------
+ * 5. AUTO-RESIZING & CHAT SCROLLING
+ * ------------------------------------------------------------- */
 input.addEventListener("input", function() {
   this.style.height = "auto";
   this.style.height = Math.min(this.scrollHeight, 110) + "px";
@@ -891,7 +2027,6 @@ input.addEventListener("keydown", function(e) {
   }
 });
 
-// Robust, multi-pass auto-scroll helper
 let userScrolledUp = false;
 
 log.addEventListener("scroll", () => {
@@ -902,407 +2037,211 @@ log.addEventListener("scroll", () => {
 function scrollToBottom(smooth = true, force = false) {
   if (userScrolledUp && !force) return;
 
-  const behavior = smooth ? "smooth" : "auto";
-  const lastChild = log.lastElementChild;
-  if (lastChild) {
+  const targetY = log.scrollHeight;
+  if (!smooth) {
+    log.scrollTop = targetY;
+    return;
+  }
+
+  log.scrollTo({ top: targetY, behavior: "smooth" });
+
+  if (log.lastElementChild) {
     try {
-      lastChild.scrollIntoView({ behavior, block: "end" });
+      log.lastElementChild.scrollIntoView({ behavior: "smooth", block: "end" });
     } catch {
       log.scrollTop = log.scrollHeight;
     }
-  } else {
-    log.scrollTop = log.scrollHeight;
   }
 
   requestAnimationFrame(() => {
-    log.scrollTo({
-      top: log.scrollHeight,
-      behavior
-    });
-  });
-
-  setTimeout(() => {
-    const el = log.lastElementChild;
-    if (el) {
-      try { el.scrollIntoView({ behavior: "smooth", block: "end" }); } catch { log.scrollTop = log.scrollHeight; }
-    } else {
-      log.scrollTop = log.scrollHeight;
-    }
-  }, 100);
-
-  setTimeout(() => {
     log.scrollTop = log.scrollHeight;
-  }, 250);
+  });
 }
 
-// Continuous DOM observer to guarantee auto-scroll when content grows
+// MutationObserver ensuring auto-scroll triggers whenever content mounts
 const chatObserver = new MutationObserver(() => {
-  scrollToBottom(true, false);
+  if (!userScrolledUp) {
+    scrollToBottom(true);
+  }
 });
 chatObserver.observe(log, { childList: true, subtree: true });
 
 /* -------------------------------------------------------------
-   DYNAMIC & PERSONALIZED SUGGESTIONS ENGINE
-   Initial suggestions when empty; personalized suggestions after conversation!
-   ------------------------------------------------------------- */
-const suggestionsDock = document.getElementById("suggestionsDock");
-
+ * 6. SUGGESTIONS DOCK SYSTEM
+ * ------------------------------------------------------------- */
 const INITIAL_SUGGESTIONS = [
-  { icon: "🗺️", label: "Explore Catalog", prompt: "Show me destinations in your catalog" },
+  { icon: "🌍", label: "Worldwide Cities", prompt: "Show me destinations in your catalog and suggest iconic cities across continents" },
   { icon: "🍋", label: "Amalfi Coast Plan", prompt: "Recommend a 5-day romantic trip to Amalfi Coast" },
   { icon: "🎨", label: "Kyoto Postcard", prompt: "Generate a vintage travel postcard for Kyoto, Japan" },
-  { icon: "🎬", label: "Amalfi Video", prompt: "Generate a short scenic video of Amalfi Coast, Italy" },
-  { icon: "🌤️", label: "Kyoto Weather", prompt: "What is the live weather in Kyoto right now?" },
-  { icon: "🏔️", label: "Adventure Spots", prompt: "What places are good for adventure and nature?" },
-  { icon: "💰", label: "Banff Budget", prompt: "Calculate a budget plan for 4 days in Banff Canada" }
+  { icon: "🏔️", label: "Adventure Spots", prompt: "What destinations in the catalog are best for hiking and nature?" },
+  { icon: "🌤️", label: "Live Weather", prompt: "Check the live weather and temperature for Kyoto, Japan" },
+  { icon: "💰", label: "Budget Escapes", prompt: "Which destinations are best for budget-conscious travelers?" },
+  { icon: "🎬", label: "Scenic Video", prompt: "Generate a short scenic video teaser for Amalfi Coast" }
 ];
 
-function wireStarterChips() {
-  const starterChips = document.querySelectorAll(".starter-chip");
-  starterChips.forEach(btn => {
-    btn.onclick = () => {
+function renderSuggestions(items, categoryTitle) {
+  if (categoryTitle && suggestionsTitle) {
+    suggestionsTitle.textContent = categoryTitle;
+  }
+  suggestionsTrack.innerHTML = "";
+
+  items.forEach(item => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip";
+    btn.innerHTML = `<span>${item.icon}</span> <span>${item.label}</span>`;
+    
+    btn.addEventListener("click", () => {
       btn.classList.add("active-press");
-      setTimeout(() => btn.classList.remove("active-press"), 150);
-      if (navigator.vibrate) navigator.vibrate(12);
-
-      const prompt = btn.dataset.prompt;
-      if (prompt) {
-        userScrolledUp = false;
-        input.value = prompt;
-        form.dispatchEvent(new Event("submit"));
-        scrollToBottom(true, true);
-      }
-    };
-  });
-}
-
-function renderSuggestions(items, title = "Suggested Ideas") {
-  if (suggestionsTitle) {
-    suggestionsTitle.textContent = title;
-  }
-  suggestionsTrack.style.opacity = "0.3";
-  setTimeout(() => {
-    suggestionsTrack.innerHTML = "";
-    items.forEach(item => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "chip";
-      btn.dataset.prompt = item.prompt;
-      btn.innerHTML = `<span>${item.icon}</span> <span>${item.label}</span>`;
-      btn.addEventListener("click", () => {
-        btn.classList.add("active-press");
-        setTimeout(() => btn.classList.remove("active-press"), 150);
-        if (navigator.vibrate) navigator.vibrate(12);
-
-        userScrolledUp = false;
-        input.value = item.prompt;
-        form.dispatchEvent(new Event("submit"));
-        scrollToBottom(true, true);
-      });
-      suggestionsTrack.appendChild(btn);
+      userScrolledUp = false;
+      input.value = item.prompt;
+      form.dispatchEvent(new Event("submit"));
     });
-    suggestionsTrack.style.opacity = "1";
-    suggestionsTrack.scrollLeft = 0;
 
-    if (suggestionsDock) {
-      suggestionsDock.classList.remove("just-updated");
-      void suggestionsDock.offsetWidth;
-      suggestionsDock.classList.add("just-updated");
-      setTimeout(() => suggestionsDock.classList.remove("just-updated"), 350);
-    }
-  }, 100);
+    suggestionsTrack.appendChild(btn);
+  });
+
+  const dock = document.getElementById("suggestionsDock");
+  if (dock) {
+    dock.classList.remove("just-updated");
+    void dock.offsetWidth;
+    dock.classList.add("just-updated");
+  }
 }
 
-// Initial render when no conversation has happened yet
-renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
-wireStarterChips();
-
-// Generate personalized next steps tailored to the chat topics
 function updatePersonalizedSuggestions(userPrompt, replyParts) {
-  let agentReplyText = "";
-  let hasImage = false;
-  let hasVideo = false;
+  const combined = (userPrompt + " " + JSON.stringify(replyParts || [])).toLowerCase();
+  const hasImage = replyParts.some(p => p && p.kind === "a2ui" && JSON.stringify(p.data).includes("Image"));
+  const hasVideo = combined.includes("video") || combined.includes(".mp4") || combined.includes("storage.googleapis.com");
 
-  for (const p of replyParts) {
-    if (p.kind === "text" && p.text) agentReplyText += " " + p.text;
-    if (p.kind === "a2ui" && p.data) {
-      const jsonStr = JSON.stringify(p.data);
-      if (jsonStr.includes('"Image"')) hasImage = true;
-      if (jsonStr.includes(".mp4")) hasVideo = true;
-      agentReplyText += " " + jsonStr;
-    }
-  }
-
-  const combined = (userPrompt + " " + agentReplyText).toLowerCase();
-
-  // Comprehensive destinations dictionary
-  const knownDests = [
-    { key: "kyoto", display: "Kyoto" },
-    { key: "tokyo", display: "Tokyo" },
-    { key: "osaka", display: "Osaka" },
-    { key: "mount fuji", display: "Mount Fuji" },
-    { key: "fuji", display: "Mount Fuji" },
-    { key: "japan", display: "Kyoto" },
-    { key: "amalfi", display: "Amalfi Coast" },
-    { key: "positano", display: "Amalfi Coast" },
-    { key: "capri", display: "Amalfi Coast" },
-    { key: "ravello", display: "Amalfi Coast" },
-    { key: "italy", display: "Amalfi Coast" },
-    { key: "rome", display: "Rome" },
-    { key: "florence", display: "Florence" },
-    { key: "venice", display: "Venice" },
-    { key: "banff", display: "Banff" },
-    { key: "lake louise", display: "Banff" },
-    { key: "jasper", display: "Banff" },
-    { key: "canada", display: "Banff" },
-    { key: "rockies", display: "Banff" },
-    { key: "reykjavik", display: "Reykjavik" },
-    { key: "blue lagoon", display: "Reykjavik" },
-    { key: "iceland", display: "Reykjavik" },
-    { key: "bali", display: "Bali" },
-    { key: "ubud", display: "Bali" },
-    { key: "indonesia", display: "Bali" },
-    { key: "paris", display: "Paris" },
-    { key: "france", display: "Paris" },
-    { key: "santorini", display: "Santorini" },
-    { key: "mykonos", display: "Santorini" },
-    { key: "greece", display: "Santorini" },
-    { key: "swiss alps", display: "Swiss Alps" },
-    { key: "switzerland", display: "Swiss Alps" },
-    { key: "zermatt", display: "Swiss Alps" },
-    { key: "hawaii", display: "Hawaii" },
-    { key: "maui", display: "Hawaii" },
-    { key: "barcelona", display: "Barcelona" },
-    { key: "madrid", display: "Madrid" },
-    { key: "london", display: "London" },
-    { key: "edinburgh", display: "Edinburgh" },
-    { key: "machu picchu", display: "Machu Picchu" },
-    { key: "peru", display: "Machu Picchu" },
-    { key: "cairo", display: "Cairo" },
-    { key: "egypt", display: "Cairo" },
-    { key: "sydney", display: "Sydney" },
-    { key: "australia", display: "Sydney" },
-    { key: "phuket", display: "Phuket" },
-    { key: "bangkok", display: "Bangkok" },
-    { key: "thailand", display: "Phuket" },
-    { key: "dubai", display: "Dubai" }
+  const cities = [
+    "kyoto", "amalfi", "banff", "reykjavik", "tokyo", "bali", "paris", "rome", 
+    "santorini", "barcelona", "zermatt", "london", "machu picchu", "new york", 
+    "rio", "cairo", "cape town", "sydney", "queenstown", "singapore", "bangkok", 
+    "seoul", "dubai", "yogyakarta", "bandung", "jakarta"
   ];
-
   let targetDest = null;
-  for (const d of knownDests) {
-    if (combined.includes(d.key)) {
-      targetDest = d.display;
+  for (const c of cities) {
+    if (combined.includes(c)) {
+      targetDest = c.charAt(0).toUpperCase() + c.slice(1);
       break;
     }
   }
 
   if (!targetDest) {
-    // Regex destination extraction fallback for arbitrary destinations
     const m = userPrompt.match(/(?:to|in|for|about|visit|explore|trip to|travel to|vacation in)\s+([A-Z][a-zA-Z\s]{1,18})/);
     if (m && m[1]) targetDest = m[1].trim();
   }
 
-  const isWeatherContext = combined.includes("weather") || combined.includes("temperature") || combined.includes("celsius") || combined.includes("forecast") || combined.includes("climate") || combined.includes("sunny") || combined.includes("rain");
-  const isBudgetContext = combined.includes("budget") || combined.includes("cost") || combined.includes("dollar") || combined.includes("math") || combined.includes("currency") || combined.includes("$") || combined.includes("expense") || combined.includes("price");
-  const isPostcardContext = hasImage || combined.includes("postcard") || combined.includes("illustration") || combined.includes("art") || combined.includes("scenic view");
-  const isVideoContext = hasVideo || combined.includes("video") || combined.includes("teaser") || combined.includes("drone") || combined.includes("cinematic");
-  const isItineraryContext = combined.includes("itinerary") || combined.includes("day 1") || combined.includes("day 2") || combined.includes("5-day") || combined.includes("4-day") || combined.includes("3-day") || combined.includes("schedule") || combined.includes("days in");
-  const isCatalogContext = combined.includes("catalog") || combined.includes("destinations") || combined.includes("destinations in your") || combined.includes("show me destinations");
-  const isWishlistContext = combined.includes("wishlist") || combined.includes("bucket list") || combined.includes("remember") || combined.includes("saved to my wishlist");
+  const isWeatherContext = combined.includes("weather") || combined.includes("temperature") || combined.includes("celsius");
+  const isBudgetContext = combined.includes("budget") || combined.includes("cost") || combined.includes("dollar");
+  const isPostcardContext = hasImage || combined.includes("postcard") || combined.includes("illustration");
+  const isVideoContext = hasVideo || combined.includes("video") || combined.includes("teaser");
+  const isItineraryContext = combined.includes("itinerary") || combined.includes("day 1") || combined.includes("4-day");
+  const isCatalogContext = combined.includes("catalog") || combined.includes("destinations");
+  const isWishlistContext = combined.includes("wishlist") || combined.includes("bucket list") || combined.includes("saved");
 
   const nextSteps = [];
 
   if (targetDest) {
-    // Highly personalized suggestions when a specific destination is discussed
     if (!isPostcardContext) {
-      nextSteps.push({
-        icon: "🎨",
-        label: `${targetDest} Postcard`,
-        prompt: `Generate a beautiful travel postcard illustration for ${targetDest}`
-      });
+      nextSteps.push({ icon: "🎨", label: `${targetDest} Postcard`, prompt: `Generate a beautiful travel postcard illustration for ${targetDest}` });
     }
     if (!isVideoContext) {
-      nextSteps.push({
-        icon: "🎬",
-        label: `${targetDest} Video`,
-        prompt: `Generate a short scenic video teaser for ${targetDest}`
-      });
+      nextSteps.push({ icon: "🎬", label: `${targetDest} Video`, prompt: `Generate a short scenic video teaser for ${targetDest}` });
     }
     if (!isWeatherContext) {
-      nextSteps.push({
-        icon: "🌤️",
-        label: `${targetDest} Weather`,
-        prompt: `What is the live weather and climate in ${targetDest} right now?`
-      });
+      nextSteps.push({ icon: "🌤️", label: `${targetDest} Weather`, prompt: `What is the live weather and climate in ${targetDest} right now?` });
     }
     if (!isItineraryContext) {
-      nextSteps.push({
-        icon: "🗓️",
-        label: `4-Day Itinerary`,
-        prompt: `Plan a detailed day-by-day 4-day itinerary for ${targetDest}`
-      });
+      nextSteps.push({ icon: "🗓️", label: `4-Day Itinerary`, prompt: `Plan a detailed day-by-day 4-day itinerary for ${targetDest}` });
     }
     if (!isBudgetContext) {
-      nextSteps.push({
-        icon: "💰",
-        label: `Trip Budget`,
-        prompt: `Calculate estimated travel budget and costs for 4 days in ${targetDest}`
-      });
+      nextSteps.push({ icon: "💰", label: `Trip Budget`, prompt: `Calculate estimated travel budget and costs for 4 days in ${targetDest}` });
     }
-    if (isPostcardContext) {
-      nextSteps.push({
-        icon: "🎨",
-        label: `Watercolor Postcard`,
-        prompt: `Generate a vibrant watercolor style postcard for ${targetDest}`
-      });
-    }
-    if (isWeatherContext) {
-      nextSteps.push({
-        icon: "🧳",
-        label: `What to Pack`,
-        prompt: `What clothes and essentials should I pack for the current weather in ${targetDest}?`
-      });
-    }
-    if (isBudgetContext) {
-      nextSteps.push({
-        icon: "🎟️",
-        label: `Free Activities`,
-        prompt: `What are the best free and low-cost things to do in ${targetDest}?`
-      });
-    }
-    nextSteps.push({
-      icon: "🍜",
-      label: `Must-Try Food`,
-      prompt: `What are the must-try local specialties and hidden gem spots in ${targetDest}?`
-    });
-    nextSteps.push({
-      icon: "🏨",
-      label: `Where to Stay`,
-      prompt: `What are the best neighborhoods and recommended places to stay in ${targetDest}?`
-    });
-    nextSteps.push({
-      icon: "💌",
-      label: `Save to Wishlist`,
-      prompt: `Please save ${targetDest} to my travel wishlist`
-    });
+    nextSteps.push({ icon: "🍜", label: `Must-Try Food`, prompt: `What are the must-try local specialties and hidden gem spots in ${targetDest}?` });
+    nextSteps.push({ icon: "🏨", label: `Where to Stay`, prompt: `What are the best neighborhoods and recommended places to stay in ${targetDest}?` });
+    nextSteps.push({ icon: "💌", label: `Save to Wishlist`, prompt: `Please save ${targetDest} to my travel wishlist` });
   } else if (isWishlistContext) {
-    // Topic: Travel Wishlist & Long-term Memory
-    nextSteps.push({
-      icon: "📜",
-      label: "View Saved Wishlist",
-      prompt: "What destinations do you currently have saved in my wishlist?"
-    });
-    nextSteps.push({
-      icon: "🗓️",
-      label: "Itinerary from Wishlist",
-      prompt: "Plan a dream itinerary based on my saved travel wishlist"
-    });
-    nextSteps.push({
-      icon: "🎨",
-      label: "Top Wishlist Postcard",
-      prompt: "Generate a postcard illustration for the top destination on my travel wishlist"
-    });
-    nextSteps.push({
-      icon: "🎬",
-      label: "Wishlist Video",
-      prompt: "Generate a scenic video teaser of the top spot on my travel wishlist"
-    });
-    nextSteps.push({
-      icon: "➕",
-      label: "Add Dream Spot",
-      prompt: "Add another dream destination to my travel wishlist"
-    });
-    nextSteps.push({
-      icon: "💰",
-      label: "Compare Trip Costs",
-      prompt: "Compare estimated travel budgets between destinations on my wishlist"
-    });
+    nextSteps.push({ icon: "📜", label: "View Wishlist", prompt: "What destinations do you currently have saved in my wishlist?" });
+    nextSteps.push({ icon: "🗓️", label: "Wishlist Itinerary", prompt: "Plan a dream itinerary based on my saved travel wishlist" });
+    nextSteps.push({ icon: "🎨", label: "Top Spot Postcard", prompt: "Generate a postcard illustration for the top destination on my travel wishlist" });
+    nextSteps.push({ icon: "💰", label: "Compare Budgets", prompt: "Compare estimated travel budgets between destinations on my wishlist" });
   } else if (isCatalogContext) {
-    // Topic: Catalog exploration
-    nextSteps.push({
-      icon: "🍋",
-      label: "Amalfi Coast Plan",
-      prompt: "Recommend a 5-day romantic trip to Amalfi Coast"
-    });
-    nextSteps.push({
-      icon: "🎨",
-      label: "Kyoto Postcard",
-      prompt: "Generate a vintage travel postcard for Kyoto, Japan"
-    });
-    nextSteps.push({
-      icon: "🏔️",
-      label: "Banff Canadian Rockies",
-      prompt: "Tell me about Banff & Lake Louise in Canada"
-    });
-    nextSteps.push({
-      icon: "🌋",
-      label: "Reykjavik Iceland",
-      prompt: "Tell me about Reykjavik and South Coast Iceland"
-    });
-    nextSteps.push({
-      icon: "✨",
-      label: "Luxury Escapes",
-      prompt: "Show me luxury tier destinations in the catalog"
-    });
-    nextSteps.push({
-      icon: "💰",
-      label: "Budget Destinations",
-      prompt: "Which destinations in the catalog are best for budget travelers?"
-    });
+    nextSteps.push({ icon: "🍋", label: "Amalfi Coast Plan", prompt: "Recommend a 5-day romantic trip to Amalfi Coast" });
+    nextSteps.push({ icon: "🎨", label: "Kyoto Postcard", prompt: "Generate a vintage travel postcard for Kyoto, Japan" });
+    nextSteps.push({ icon: "🏔️", label: "Banff Rockies", prompt: "Tell me about Banff & Lake Louise in Canada" });
+    nextSteps.push({ icon: "💰", label: "Budget Escapes", prompt: "Which destinations in the catalog are best for budget travelers?" });
   } else {
-    // General topic continuation
-    nextSteps.push({
-      icon: "🗺️",
-      label: "Browse Destinations",
-      prompt: "Show me destinations in your catalog"
-    });
-    nextSteps.push({
-      icon: "🎨",
-      label: "Illustrate Postcard",
-      prompt: "Generate a scenic travel postcard illustration"
-    });
-    nextSteps.push({
-      icon: "🎬",
-      label: "Scenic Video",
-      prompt: "Generate a short scenic video teaser for a dream destination"
-    });
-    nextSteps.push({
-      icon: "🌤️",
-      label: "Check Live Weather",
-      prompt: "Check live weather for a popular destination"
-    });
-    nextSteps.push({
-      icon: "💰",
-      label: "Calculate Budget",
-      prompt: "Help me calculate travel expenses and currency conversion"
-    });
-    nextSteps.push({
-      icon: "💌",
-      label: "Travel Wishlist",
-      prompt: "What destinations are saved on my travel wishlist?"
-    });
+    nextSteps.push({ icon: "🗺️", label: "Browse Catalog", prompt: "Show me destinations in your catalog" });
+    nextSteps.push({ icon: "🎨", label: "Illustrate Postcard", prompt: "Generate a scenic travel postcard illustration" });
+    nextSteps.push({ icon: "🌤️", label: "Check Weather", prompt: "Check live weather for a popular destination" });
+    nextSteps.push({ icon: "💌", label: "Travel Wishlist", prompt: "What destinations are saved on my travel wishlist?" });
   }
 
-  const title = targetDest ? `What you can do next with ${targetDest}:` : (isWishlistContext ? "What you can do next with your Wishlist:" : "What you can do next:");
-  renderSuggestions(nextSteps.slice(0, 7), title);
+  const title = targetDest ? `What you can do next with ${targetDest}:` : (isWishlistContext ? "Wishlist Actions:" : "Suggested Ideas:");
+  const finalSuggestions = nextSteps.slice(0, 7);
+  renderSuggestions(finalSuggestions, title);
+  SessionVault.updateSuggestions(currentSession.id, finalSuggestions, title);
 }
 
-// Reset session
-resetBtn.addEventListener("click", () => {
-  if (confirm("Start a new travel planning conversation?")) {
-    userId = "user-" + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem("wanderlust_user_id", userId);
-    log.innerHTML = "";
+function wireStarterChips() {
+  document.querySelectorAll(".starter-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      chip.classList.add("active-press");
+      userScrolledUp = false;
+      const promptText = chip.getAttribute("data-prompt");
+      if (promptText) {
+        input.value = promptText;
+        form.dispatchEvent(new Event("submit"));
+      }
+    });
+  });
+}
+wireStarterChips();
+
+/* -------------------------------------------------------------
+ * 7. RESTORE SESSION ON RELOAD (Never Loses Chat Memory)
+ * ------------------------------------------------------------- */
+function restoreSessionUI(sess) {
+  log.innerHTML = "";
+  if (!sess.messages || sess.messages.length === 0) {
     if (welcomeCard) {
       log.appendChild(welcomeCard);
       wireStarterChips();
     }
     renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
-    input.value = "";
-    input.focus();
+    return;
   }
-});
 
+  sess.messages.forEach(msg => {
+    if (msg.who === "user") {
+      const b = bubble("user");
+      b.textContent = msg.text || "";
+    } else {
+      const b = bubble("agent");
+      renderReply(b, msg.parts || [{ kind: "text", text: msg.text || "" }]);
+    }
+  });
+
+  if (sess.suggestions && sess.suggestions.length > 0) {
+    renderSuggestions(sess.suggestions, sess.suggestionsTitle || "Suggested Ideas");
+  } else {
+    const lastUserMsg = [...sess.messages].reverse().find(m => m.who === "user");
+    const lastAgentMsg = [...sess.messages].reverse().find(m => m.who === "agent");
+    if (lastUserMsg) {
+      updatePersonalizedSuggestions(lastUserMsg.text || "", (lastAgentMsg && lastAgentMsg.parts) || []);
+    } else {
+      renderSuggestions(INITIAL_SUGGESTIONS, "Suggested Ideas");
+    }
+  }
+
+  setTimeout(() => scrollToBottom(false, true), 100);
+}
+
+/* -------------------------------------------------------------
+ * 8. A2UI MINI RENDERER (v0.8 Basic Catalog)
+ * ------------------------------------------------------------- */
 function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -1335,10 +2274,6 @@ function removeTypingIndicator() {
   if (ind) ind.remove();
 }
 
-/* ----------------------------------------------------------------------------
- * A2UI mini-renderer (v0.8 Basic Catalog subset).
- * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
- * -------------------------------------------------------------------------- */
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -1512,6 +2447,9 @@ function renderReply(b, parts) {
   scrollToBottom(true, true);
 }
 
+/* -------------------------------------------------------------
+ * 9. FORM SUBMIT & MULTI-TURN MEMORY
+ * ------------------------------------------------------------- */
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const text = input.value.trim();
@@ -1521,6 +2459,9 @@ form.addEventListener("submit", async (ev) => {
   const userB = bubble("user");
   userB.textContent = text;
   scrollToBottom(true, true);
+
+  // Save to persistent session vault immediately
+  SessionVault.addMessage(currentSession, { who: "user", text: text, ts: Date.now() });
 
   input.value = "";
   input.style.height = "auto";
@@ -1551,7 +2492,17 @@ form.addEventListener("submit", async (ev) => {
     renderReply(b, parts);
     scrollToBottom(true, true);
 
-    // Dynamically update suggestions based on the topic of the conversation!
+    // Save agent response into persistent session vault
+    SessionVault.addMessage(currentSession, { who: "agent", parts: parts, ts: Date.now() });
+
+    // Sync to backend history storage in background
+    fetch(`/api/history/${userId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: currentSession.messages })
+    }).catch(() => {});
+
+    // Dynamically update suggestions based on the topic
     updatePersonalizedSuggestions(text, parts);
     setTimeout(() => scrollToBottom(true, true), 150);
   } catch (e) {
@@ -1564,6 +2515,12 @@ form.addEventListener("submit", async (ev) => {
     input.focus();
     scrollToBottom(true, true);
   }
+});
+
+// INITIALIZE: Restore active session from localStorage on boot
+document.addEventListener("DOMContentLoaded", () => {
+  updateHistoryBadge();
+  restoreSessionUI(currentSession);
 });
 </script>
 </body>

@@ -38,6 +38,7 @@ import google.auth
 import google.auth.transport.requests
 import httpx
 from a2a.client import ClientConfig, ClientFactory
+from a2a.client import ClientConfig, ClientFactory
 from a2a.types import (
     AgentCard,
     FilePart,
@@ -220,7 +221,141 @@ async def chat(req: Request):
     return JSONResponse({"parts": parts})
 
 
-# Serve the chat UI (keep this mount last so /chat wins).
+# -------------------------------------------------------------
+# WORLDWIDE DESTINATIONS, GEOCODING, & CHAT HISTORY APIS
+# -------------------------------------------------------------
+_user_histories: dict[str, list[dict]] = {}
+
+
+def _flag_from_code(code: str) -> str:
+    if not code or len(code) != 2:
+        return "🌍"
+    try:
+        return "".join(chr(127397 + ord(c.upper())) for c in code)
+    except Exception:
+        return "🌍"
+
+
+@app.get("/api/cities/search")
+async def search_cities(q: str):
+    """Search any city in the world using Open-Meteo Geocoding + Wikipedia summary."""
+    query = (q or "").strip()
+    if not query:
+        return JSONResponse({"results": []})
+
+    async with httpx.AsyncClient(timeout=8) as client:
+        # 1. Open-Meteo Worldwide Geocoding API (free, open, no key)
+        geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={httpx.URL(query).raw_path.decode()}&count=6&language=en&format=json"
+        try:
+            resp = await client.get(geo_url, headers={"User-Agent": "WanderlustApp/1.0"})
+            geo_data = resp.json()
+        except Exception as e:
+            return JSONResponse({"results": [], "error": str(e)})
+
+        raw_results = geo_data.get("results") or []
+        results = []
+
+        for item in raw_results:
+            name = item.get("name", "")
+            country = item.get("country", "")
+            country_code = item.get("country_code", "")
+            flag = _flag_from_code(country_code)
+            admin1 = item.get("admin1", "")
+            lat = item.get("latitude")
+            lon = item.get("longitude")
+            pop = item.get("population")
+            tz = item.get("timezone", "UTC")
+
+            results.append({
+                "name": name,
+                "country": country,
+                "country_code": country_code,
+                "flag": flag,
+                "admin1": admin1,
+                "display_name": f"{flag} {name}, {country}" if country else f"{flag} {name}",
+                "latitude": lat,
+                "longitude": lon,
+                "population": pop,
+                "timezone": tz,
+            })
+
+        # 2. Enrich top result with Wikipedia summary and thumbnail photo
+        if results:
+            top_name = results[0]["name"]
+            try:
+                wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{httpx.URL(top_name).raw_path.decode()}"
+                w_resp = await client.get(wiki_url, headers={"User-Agent": "WanderlustApp/1.0"})
+                if w_resp.status_code == 200:
+                    w_data = w_resp.json()
+                    results[0]["extract"] = w_data.get("extract", "")
+                    if w_data.get("thumbnail") and w_data["thumbnail"].get("source"):
+                        results[0]["thumbnail"] = w_data["thumbnail"]["source"]
+            except Exception:
+                pass
+
+        return JSONResponse({"results": results})
+
+
+@app.get("/api/destinations/worldwide")
+async def get_worldwide_destinations():
+    """Curated list of 25+ iconic destinations across all continents."""
+    destinations = [
+        # Asia
+        {"name": "Kyoto", "country": "Japan", "continent": "Asia", "flag": "🇯🇵", "vibe": "cultural", "budget": "moderate", "season": "Spring (Mar-May) / Autumn", "highlights": ["Fushimi Inari Shrine", "Arashiyama Bamboo Grove", "Gion Geisha District"]},
+        {"name": "Tokyo", "country": "Japan", "continent": "Asia", "flag": "🇯🇵", "vibe": "modern", "budget": "moderate", "season": "Spring & Autumn", "highlights": ["Shibuya Crossing", "Shinjuku Nightlife", "Sensō-ji Temple"]},
+        {"name": "Bali", "country": "Indonesia", "continent": "Asia", "flag": "🇮🇩", "vibe": "tropical", "budget": "budget", "season": "Apr-Oct (Dry season)", "highlights": ["Ubud Rice Terraces", "Uluwatu Temple Sunset", "Canggu Cafes"]},
+        {"name": "Yogyakarta", "country": "Indonesia", "continent": "Asia", "flag": "🇮🇩", "vibe": "cultural", "budget": "budget", "season": "May-Sep", "highlights": ["Borobudur Sunrise", "Prambanan Temple", "Keraton Palace"]},
+        {"name": "Singapore", "country": "Singapore", "continent": "Asia", "flag": "🇸🇬", "vibe": "futuristic", "budget": "luxury", "season": "Year-round", "highlights": ["Gardens by the Bay", "Marina Bay Sands", "Chinatown Food"]},
+        {"name": "Bangkok", "country": "Thailand", "continent": "Asia", "flag": "🇹🇭", "vibe": "foodie", "budget": "budget", "season": "Nov-Feb", "highlights": ["Grand Palace", "Wat Arun Sunset", "Street Food Night Markets"]},
+        {"name": "Seoul", "country": "South Korea", "continent": "Asia", "flag": "🇰🇷", "vibe": "cultural", "budget": "moderate", "season": "Sep-Nov", "highlights": ["Gyeongbokgung Palace", "Bukchon Hanok Village", "Myeongdong"]},
+        {"name": "Dubai", "country": "UAE", "continent": "Asia", "flag": "🇦🇪", "vibe": "luxury", "budget": "luxury", "season": "Nov-Mar", "highlights": ["Burj Khalifa", "Desert Safari Dune Bashing", "Palm Jumeirah"]},
+        # Europe
+        {"name": "Amalfi Coast", "country": "Italy", "continent": "Europe", "flag": "🇮🇹", "vibe": "romantic", "budget": "luxury", "season": "May-Sep", "highlights": ["Positano Cliffside", "Capri Boat Tour", "Ravello Gardens"]},
+        {"name": "Rome", "country": "Italy", "continent": "Europe", "flag": "🇮🇹", "vibe": "historic", "budget": "moderate", "season": "Apr-Jun / Sep-Oct", "highlights": ["Colosseum", "Vatican & Sistine Chapel", "Trevi Fountain"]},
+        {"name": "Paris", "country": "France", "continent": "Europe", "flag": "🇫🇷", "vibe": "romantic", "budget": "moderate", "season": "Apr-Oct", "highlights": ["Eiffel Tower", "Louvre Museum", "Montmartre & Sacré-Cœur"]},
+        {"name": "Santorini", "country": "Greece", "continent": "Europe", "flag": "🇬🇷", "vibe": "scenic", "budget": "luxury", "season": "May-Oct", "highlights": ["Oia Sunset Caldera", "Red Beach", "White & Blue Domes"]},
+        {"name": "Barcelona", "country": "Spain", "continent": "Europe", "flag": "🇪🇸", "vibe": "coastal", "budget": "moderate", "season": "May-Oct", "highlights": ["Sagrada Família", "Park Güell", "Barceloneta Beach"]},
+        {"name": "Swiss Alps (Zermatt)", "country": "Switzerland", "continent": "Europe", "flag": "🇨🇭", "vibe": "nature", "budget": "luxury", "season": "Dec-Apr (Snow) / Jun-Sep (Hike)", "highlights": ["Matterhorn Views", "Gornergrat Railway", "Alpine Ski Slopes"]},
+        {"name": "Reykjavik", "country": "Iceland", "continent": "Europe", "flag": "🇮🇸", "vibe": "adventure", "budget": "luxury", "season": "Sep-Mar (Aurora) / Jun-Aug", "highlights": ["Northern Lights", "Blue Lagoon Geothermal Spa", "Golden Circle Waterfalls"]},
+        {"name": "London", "country": "UK", "continent": "Europe", "flag": "🇬🇧", "vibe": "historic", "budget": "moderate", "season": "May-Sep", "highlights": ["Big Ben & Westminster", "British Museum", "Tower Bridge"]},
+        # Americas
+        {"name": "Banff & Lake Louise", "country": "Canada", "continent": "Americas", "flag": "🇨🇦", "vibe": "nature", "budget": "moderate", "season": "Jun-Aug / Dec-Mar", "highlights": ["Turquoise Lake Louise", "Moraine Lake", "Icefields Parkway"]},
+        {"name": "New York City", "country": "USA", "continent": "Americas", "flag": "🇺🇸", "vibe": "urban", "budget": "luxury", "season": "Sep-Dec", "highlights": ["Central Park", "Times Square & Broadway", "Empire State Building"]},
+        {"name": "Cusco & Machu Picchu", "country": "Peru", "continent": "Americas", "flag": "🇵🇪", "vibe": "adventure", "budget": "moderate", "season": "May-Oct (Dry season)", "highlights": ["Inca Citadel", "Sacred Valley", "Rainbow Mountain"]},
+        {"name": "Rio de Janeiro", "country": "Brazil", "continent": "Americas", "flag": "🇧🇷", "vibe": "coastal", "budget": "moderate", "season": "Dec-Mar", "highlights": ["Christ the Redeemer", "Copacabana Beach", "Sugarloaf Mountain"]},
+        {"name": "Maui (Hawaii)", "country": "USA", "continent": "Americas", "flag": "🇺🇸", "vibe": "tropical", "budget": "luxury", "season": "Year-round", "highlights": ["Road to Hana", "Haleakala Sunrise", "Kaanapali Snorkeling"]},
+        # Africa & Oceania
+        {"name": "Cairo", "country": "Egypt", "continent": "Africa", "flag": "🇪🇬", "vibe": "historic", "budget": "budget", "season": "Oct-Apr", "highlights": ["Great Pyramids of Giza", "The Sphinx", "Grand Egyptian Museum"]},
+        {"name": "Cape Town", "country": "South Africa", "continent": "Africa", "flag": "🇿🇦", "vibe": "scenic", "budget": "moderate", "season": "Nov-Mar", "highlights": ["Table Mountain Cableway", "Cape Point", "Boulders Penguin Beach"]},
+        {"name": "Sydney", "country": "Australia", "continent": "Oceania", "flag": "🇦🇺", "vibe": "coastal", "budget": "moderate", "season": "Sep-Nov / Mar-May", "highlights": ["Sydney Opera House", "Bondi to Coogee Walk", "Harbour Bridge Climb"]},
+        {"name": "Queenstown", "country": "New Zealand", "continent": "Oceania", "flag": "🇳🇿", "vibe": "adventure", "budget": "moderate", "season": "Dec-Feb (Summer) / Jun-Aug", "highlights": ["Milford Sound Cruise", "Bungy Jumping", "Lake Wakatipu Skyline"]},
+    ]
+    return JSONResponse({"destinations": destinations})
+
+
+@app.get("/api/history/{user_id}")
+async def get_history(user_id: str):
+    return JSONResponse({"messages": _user_histories.get(user_id, [])})
+
+
+@app.post("/api/history/{user_id}")
+async def save_history(user_id: str, req: Request):
+    data = await req.json()
+    messages = data.get("messages", [])
+    _user_histories[user_id] = messages
+    return JSONResponse({"status": "saved", "count": len(messages)})
+
+
+@app.delete("/api/history/{user_id}")
+async def clear_history(user_id: str):
+    if user_id in _user_histories:
+        del _user_histories[user_id]
+    if user_id in _contexts:
+        del _contexts[user_id]
+    return JSONResponse({"status": "cleared"})
+
+
+# Serve the chat UI (keep this mount last so /chat and /api win).
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 
