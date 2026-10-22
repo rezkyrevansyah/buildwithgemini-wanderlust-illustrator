@@ -138,6 +138,7 @@
     gap: 1rem;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
     transform: translateZ(0);
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
@@ -217,13 +218,12 @@
     border-color: #0f766e;
   }
 
-  /* Message Bubbles - Content Visibility for Zero Reflow Jank */
+  /* Message Bubbles */
   .msg {
     display: flex;
     flex-direction: column;
     max-width: 88%;
-    content-visibility: auto;
-    contain-intrinsic-size: 0 70px;
+    scroll-margin-bottom: 1.5rem;
     animation: quickFade 0.15s ease-out forwards;
   }
 
@@ -891,19 +891,55 @@ input.addEventListener("keydown", function(e) {
   }
 });
 
-// Performant, non-blocking scroll helper
-let isAutoScrolling = false;
-function scrollToBottom(smooth = true) {
-  if (isAutoScrolling) return;
-  isAutoScrolling = true;
+// Robust, multi-pass auto-scroll helper
+let userScrolledUp = false;
+
+log.addEventListener("scroll", () => {
+  const distanceToBottom = log.scrollHeight - log.scrollTop - log.clientHeight;
+  userScrolledUp = distanceToBottom > 90;
+});
+
+function scrollToBottom(smooth = true, force = false) {
+  if (userScrolledUp && !force) return;
+
+  const behavior = smooth ? "smooth" : "auto";
+  const lastChild = log.lastElementChild;
+  if (lastChild) {
+    try {
+      lastChild.scrollIntoView({ behavior, block: "end" });
+    } catch {
+      log.scrollTop = log.scrollHeight;
+    }
+  } else {
+    log.scrollTop = log.scrollHeight;
+  }
+
   requestAnimationFrame(() => {
     log.scrollTo({
       top: log.scrollHeight,
-      behavior: smooth ? "smooth" : "auto"
+      behavior
     });
-    isAutoScrolling = false;
   });
+
+  setTimeout(() => {
+    const el = log.lastElementChild;
+    if (el) {
+      try { el.scrollIntoView({ behavior: "smooth", block: "end" }); } catch { log.scrollTop = log.scrollHeight; }
+    } else {
+      log.scrollTop = log.scrollHeight;
+    }
+  }, 100);
+
+  setTimeout(() => {
+    log.scrollTop = log.scrollHeight;
+  }, 250);
 }
+
+// Continuous DOM observer to guarantee auto-scroll when content grows
+const chatObserver = new MutationObserver(() => {
+  scrollToBottom(true, false);
+});
+chatObserver.observe(log, { childList: true, subtree: true });
 
 /* -------------------------------------------------------------
    DYNAMIC & PERSONALIZED SUGGESTIONS ENGINE
@@ -931,8 +967,10 @@ function wireStarterChips() {
 
       const prompt = btn.dataset.prompt;
       if (prompt) {
+        userScrolledUp = false;
         input.value = prompt;
         form.dispatchEvent(new Event("submit"));
+        scrollToBottom(true, true);
       }
     };
   });
@@ -956,8 +994,10 @@ function renderSuggestions(items, title = "Suggested Ideas") {
         setTimeout(() => btn.classList.remove("active-press"), 150);
         if (navigator.vibrate) navigator.vibrate(12);
 
+        userScrolledUp = false;
         input.value = item.prompt;
         form.dispatchEvent(new Event("submit"));
+        scrollToBottom(true, true);
       });
       suggestionsTrack.appendChild(btn);
     });
@@ -1368,6 +1408,7 @@ function buildNode(id, comps, seen) {
       img.loading = "lazy";
       img.title = "Click to enlarge";
       img.addEventListener("click", () => openLightbox(src));
+      img.addEventListener("load", () => scrollToBottom(true, true));
 
       const bar = el("div", "img-overlay-bar");
 
@@ -1458,7 +1499,17 @@ function renderReply(b, parts) {
     if (!renderSurface(a2ui, b)) b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
   }
   if (!b.childNodes.length) b.textContent = "(no response)";
-  scrollToBottom(true);
+
+  const imgs = b.querySelectorAll("img");
+  imgs.forEach(img => {
+    if (img.complete) {
+      scrollToBottom(true, true);
+    } else {
+      img.addEventListener("load", () => scrollToBottom(true, true));
+    }
+  });
+
+  scrollToBottom(true, true);
 }
 
 form.addEventListener("submit", async (ev) => {
@@ -1466,12 +1517,17 @@ form.addEventListener("submit", async (ev) => {
   const text = input.value.trim();
   if (!text) return;
 
-  bubble("user").textContent = text;
+  userScrolledUp = false;
+  const userB = bubble("user");
+  userB.textContent = text;
+  scrollToBottom(true, true);
+
   input.value = "";
   input.style.height = "auto";
   sendBtn.disabled = true;
 
   showTypingIndicator();
+  scrollToBottom(true, true);
 
   try {
     const res = await fetch("/chat", {
@@ -1493,16 +1549,20 @@ form.addEventListener("submit", async (ev) => {
 
     const parts = data.parts || [];
     renderReply(b, parts);
+    scrollToBottom(true, true);
 
     // Dynamically update suggestions based on the topic of the conversation!
     updatePersonalizedSuggestions(text, parts);
+    setTimeout(() => scrollToBottom(true, true), 150);
   } catch (e) {
     removeTypingIndicator();
     const b = bubble("agent");
     b.textContent = "Error: " + e.message;
+    scrollToBottom(true, true);
   } finally {
     sendBtn.disabled = false;
     input.focus();
+    scrollToBottom(true, true);
   }
 });
 </script>
