@@ -6,9 +6,9 @@
 
 ### An agent-first AI travel planner that curates custom dream itineraries, remembers traveler preferences and wishlists across sessions, queries live weather, runs budget computations in a secure code sandbox, and generates vibrant visual travel postcards and teaser videos.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://wanderlust-illustrator-frontend-494495082021.us-east1.run.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://wanderlust-frontend-494495082021.us-east1.run.app)
 
-> 🚀 **Live Demo**: [https://wanderlust-illustrator-frontend-494495082021.us-east1.run.app](https://wanderlust-illustrator-frontend-494495082021.us-east1.run.app)  
+> 🚀 **Live Demo**: [https://wanderlust-frontend-494495082021.us-east1.run.app](https://wanderlust-frontend-494495082021.us-east1.run.app)  
 > *(Note: Deployed on Google Cloud Run during the Build with Gemini workshop).*
 
 </div>
